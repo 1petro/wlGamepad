@@ -105,7 +105,7 @@ void wlgp_draw_scaleable_layout(Gamepad gp[], int scale, uint32_t *argb[], int s
 			}
 			else
 			{
-				sprintf(buf, "assests/layout/themes/%s/PlayStation_Down.png", themes[sel_theme]);
+				sprintf(buf, "assests/layout/themes/%s/PlayStation_UP.png", themes[sel_theme]);
 				//fprintf(stderr,"%s\n",buf);
 				read_gp_img(&img, buf);
 				//draw_gplayoutwoffset(argb[i], &img, 0, 0, gp[i].gm.size,1);
@@ -122,7 +122,7 @@ void wlgp_draw_scaleable_layout(Gamepad gp[], int scale, uint32_t *argb[], int s
 			}
 			else
 			{
-				sprintf(buf, "assests/layout/themes/%s/PlayStation_UP.png", themes[sel_theme]);
+				sprintf(buf, "assests/layout/themes/%s/PlayStation_Down.png", themes[sel_theme]);
 				//fprintf(stderr,"%s\n",buf);
 			        read_gp_img(&img, buf);
 				//draw_gplayoutwoffset(argb[i], &img, 0, 0, gp[i].gm.size,1);
@@ -139,7 +139,7 @@ void wlgp_draw_scaleable_layout(Gamepad gp[], int scale, uint32_t *argb[], int s
 			}
 			else
 			{
-				sprintf(buf, "assests/layout/themes/%s/PlayStation_Right.png", themes[sel_theme]);
+				sprintf(buf, "assests/layout/themes/%s/PlayStation_East.png", themes[sel_theme]);
 				//fprintf(stderr,"%s\n",buf);
             			read_gp_img(&img, buf);
 				//draw_gplayoutwoffset(argb[i], &img, 0, 0, gp[i].gm.size,1);
@@ -156,7 +156,7 @@ void wlgp_draw_scaleable_layout(Gamepad gp[], int scale, uint32_t *argb[], int s
 			}
 			else
 			{
-				sprintf(buf, "assests/layout/themes/%s/PlayStation_East.png", themes[sel_theme]);
+				sprintf(buf, "assests/layout/themes/%s/PlayStation_Right.png", themes[sel_theme]);
 				//fprintf(stderr,"%s\n",buf);
 				read_gp_img(&img, buf);
 				//draw_gplayoutwoffset(argb[i], &img, 0, 0, gp[i].gm.size,1);
@@ -244,7 +244,7 @@ void wlgp_draw_scaleable_layout(Gamepad gp[], int scale, uint32_t *argb[], int s
 			else
 			{
 				//sprintf(buf, "assests/layout/themes/%s/PlayStation_1_L.png", themes[sel_theme]);
-				sprintf(buf, "assests/layout/themes/%s/PlayStation_Start.png", themes[sel_theme]);
+				sprintf(buf, "assests/layout/themes/%s/PlayStation_1_L127x85.png", themes[sel_theme]);
 				//fprintf(stderr,"%s\n",buf);
 				read_gp_img(&img, buf);
 				//draw_gplayoutwoffset(argb[i], &img, 0, 0, gp[i].gm.size,1);
@@ -263,7 +263,7 @@ void wlgp_draw_scaleable_layout(Gamepad gp[], int scale, uint32_t *argb[], int s
 			else
 			{
 				//sprintf(buf, "assests/layout/themes/%s/PlayStation_2_R.png", themes[sel_theme]);
-				sprintf(buf, "assests/layout/themes/%s/PlayStation_Start.png", themes[sel_theme]);
+				sprintf(buf, "assests/layout/themes/%s/PlayStation_R_127x89.png", themes[sel_theme]);
 				//fprintf(stderr,"%s\n",buf);
 				read_gp_img(&img, buf);
 				//draw_gplayoutwoffset(argb[i], &img, 0, 0, gp[i].gm.size,1);
@@ -311,11 +311,13 @@ void wlgp_draw_scaleable_layout(Gamepad gp[], int scale, uint32_t *argb[], int s
 		}
 		else if (!strncmp(gp[i].button, "[CUSTOM", 7))
 		{
+			 gp[i].gm.height =  gp[i].gm.width = gp[i].gm.size;
 			draw_area(argb[i], gp[i].gm.size, gp[i].gm.size, WHITE);
 			draw_line(argb[i], gp[i].gm.size / 10, gp[i].gm.size / 2.5, gp[i].gm.size, gp[i].gm.size - (gp[i].gm.size / 10) *2, 8, BLACK);
 		}
 		else if (!strcmp(gp[i].button, "[TOUCHPAD]"))
 		{
+			gp[i].gm.size = gp[i].gm.height =  gp[i].gm.width = 150;
 			draw_area(argb[i], gp[i].gm.size, gp[i].gm.size, BLACK);
 			draw_line(argb[i], 50, 50, gp[i].gm.size, 50, 50, WHITE);
 		}

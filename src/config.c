@@ -225,6 +225,6 @@ void adj_scale(Gamepad gp[],int sel_theme,int scale,int begin,int end)
 		//gp[i].gm.y  += scale * DEFAULT_SIZE;
 		gp[i].gm.y  += offset_val;
 
-		printf("X offset %d Y offset %d touch_length_x %d touch_length_y %d\n",gp[i].gm.x,gp[i].gm.y,gp[i].gm.touch_length_x,gp[i].gm.touch_length_y);
+		//printf("X offset %d Y offset %d touch_length_x %d touch_length_y %d\n",gp[i].gm.x,gp[i].gm.y,gp[i].gm.touch_length_x,gp[i].gm.touch_length_y);
 	}
 }
