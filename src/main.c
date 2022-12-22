@@ -158,7 +158,7 @@
 		}
 
 		gamepad_layout = wlgp_create_argb_buffer(&gp_layout, area);
-		printf(" size required %d\n",size);
+		//printf(" size required %d\n",size);
 
 		for (int i = 0; i <= MAX_BUTTONS; i++)
 		{
