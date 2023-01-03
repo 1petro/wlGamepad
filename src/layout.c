@@ -34,7 +34,9 @@ void wlgp_set_keymap(Gamepad gp[], struct wlkb_in *data, int flag, int begin, in
 			if (touchdt.prs && flag && gp[i].toggle)
 			{
 				send_event(data->fd, EV_KEY, gp[i].keycode, 1);
+				#ifdef DEBUG
 				fprintf(stderr, "Button %s UP ....\n",gp[i].button);
+				#endif
 				chk[i] = 1;
 			}
 			else if (!flag)
@@ -47,13 +49,17 @@ void wlgp_set_keymap(Gamepad gp[], struct wlkb_in *data, int flag, int begin, in
 				if ((rc = lookup_match_keycode(gp, i)))
 				{
 					send_event(data->fd, EV_KEY, gp[i].keycode, 0);
+					#ifdef DEBUG
 					fprintf(stderr, "Button %s DOWM ....\n",gp[i].button);
+					#endif
 					memset(chk, 0, sizeof(chk));
 				}
 				else if (flag && rc)
 				{
 					send_event(data->fd, EV_KEY, gp[i].keycode, 0);
+					#ifdef DEBUG
 					fprintf(stderr, "Button %s DOWM ....\n",gp[i].button);
+					#endif
 				}
 			}
 		}
