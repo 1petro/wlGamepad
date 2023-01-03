@@ -1,0 +1,3 @@
+#meson options
+
+option('allow_debug', type: 'boolean', value: false, description: 'Enable DEBUG in C code')

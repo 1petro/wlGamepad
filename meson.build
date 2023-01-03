@@ -1,4 +1,4 @@
-project('wlgamepad', 'c', default_options: ['c_std=c99'])
+project('wlgamepad', 'c', version: '0.2-beta', default_options: ['c_std=c99'])
 
 cc = meson.get_compiler('c')
 
@@ -8,8 +8,9 @@ wayland_scanner = find_program('wayland-scanner')
 wayland_client = dependency('wayland-client')
 rt = cc.find_library('rt')
 
-if get_option('buildtype').startswith('debug')
-	add_project_arguments('-DDEBUG', language: 'c')
+optvalue = get_option('allow_debug')
+if optvalue
+add_project_arguments('-DDEBUG', language: 'c')
 endif
 
 xdg_shell_h = custom_target(
