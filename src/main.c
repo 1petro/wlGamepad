@@ -49,7 +49,14 @@ main(int argc, char **argv)
         rgb.popup = wlgp_create_argb_buffer(&popup);
         draw_area(rgb.popup,POPUP_WIDTH,POPUP_HEIGHT,WHITE);
         draw_area(rgb.gp_layout,WIDTH,HEIGHT,BLACK);
-
+        draw_pixel(rgb.gp_layout,499,80,WIDTH,WHITE);
+        //draw_line(rgb.gp_layout,300,10,WIDTH,0,80,WHITE);
+        draw_rectangular(rgb.gp_layout,300,80,WIDTH,50,3,WHITE);
+        draw_circle(rgb.gp_layout,300,200,20,WIDTH,3, WHITE);
+        //draw_incline(rgb.gp_layout,300,90,WIDTH,50,10,0,WHITE);
+        draw_triangle(rgb.gp_layout,100,100,WIDTH,50,3,WHITE);
+        draw_x(rgb.gp_layout,300,100,WIDTH,50,3,WHITE);
+        draw_dpad(rgb.gp_layout,150,120,WIDTH,50,10,DIRC_RIGHT,WHITE);
 	struct pollfd fds[2];
 	fds[0] = (struct pollfd) {
 		.fd = wl_display_get_fd(gp_layout.wl_display),
@@ -104,8 +111,8 @@ main(int argc, char **argv)
 				}
 
 				if (hidden) {
-                        wlgp_create_surface(&popup,1,POPUP_WIDTH,POPUP_HEIGHT);
-                        wlgp_create_surface(&gp_layout,6,WIDTH,HEIGHT);
+                        wlgp_create_surface(&popup,DIRC_TOP,POPUP_WIDTH,POPUP_HEIGHT);
+                        wlgp_create_surface(&gp_layout,DIRC_BOTTOMLEFT,WIDTH,HEIGHT);
                                         
 					/*assert(app.wl_buffer);
 					assert(app.wl_compositor);
