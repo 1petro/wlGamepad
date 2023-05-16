@@ -16,7 +16,6 @@
 #include <src/draw.h>
 #include "wlr-layer-shell-unstable-v1.h"
 #include "xdg-shell-client-protocol.h"
-int buf;
 
 
 void
