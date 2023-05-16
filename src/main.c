@@ -14,6 +14,7 @@
 #include <unistd.h> // shm, ftruncate
 #include <poll.h>
 #include <src/draw.h>
+#include <src/wlgp-input.h>
 #include "wlr-layer-shell-unstable-v1.h"
 #include "xdg-shell-client-protocol.h"
 

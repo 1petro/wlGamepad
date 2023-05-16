@@ -44,7 +44,7 @@ wlr_layer_shell_unstable_v1 = declare_dependency(link_with: wlr_layer_shell_unst
 
 executable(
 	'wlgamepad',
-	['src/main.c','src/wlgp-gui.c','src/draw.c'], 
+	['src/main.c','src/wlgp-gui.c','src/draw.c','src/wlgp-input.c'], 
 	dependencies: [wayland_client, wlr_layer_shell_unstable_v1, xdg_shell, rt], 
 	install: true
 )
