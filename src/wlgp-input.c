@@ -62,12 +62,14 @@ void emit(int fd, uint16_t type, uint16_t code, int val) { struct input_event ie
 void touchstatus(struct wlkb_in *data){
       if(data->ev.type==EV_KEY && data->ev.code==BTN_TOUCH && data->ev.value==1){data->mt.pressed=1;}
            else{data->mt.pressed =  0;}
+           if(data->ev.type==EV_KEY && data->ev.code==BTN_TOUCH && data->ev.value==0){data->mt.touch_end=1;}
+           else{data->mt.touch_end= 0;}
       if(!data->mt.pressed && data->ev.type==EV_ABS && data->ev.code==ABS_MT_TRACKING_ID && data->ev.value==-1){data->mt.released=1;}
            else{data->mt.released =  0;}
       data->mt.max_slots=libevdev_get_num_slots(data->dev);
       int numTouches = 0;
 	for (int i=0; i < libevdev_get_num_slots(data->dev); i++) {
-		if (libevdev_get_slot_value(data->dev, i, ABS_MT_TRACKING_ID) != -1) {
+		if ( (data->mt.id[i]=libevdev_get_slot_value(data->dev, i, ABS_MT_TRACKING_ID)) != -1) {
 			numTouches++;
 		}
 	}
@@ -82,6 +84,28 @@ void touchstatus(struct wlkb_in *data){
            data->mt.x[i] = libevdev_get_slot_value(data->dev, i, ABS_MT_POSITION_X);
            data->mt.y[i] = libevdev_get_slot_value(data->dev, i, ABS_MT_POSITION_Y);
      }
+}
+
+int
+print_event(struct wlkb_in *data)
+{
+        if (data->ev.type == EV_SYN){
+                printf("Event: time %ld.%06ld, ++++++++++++++++++++ %s +++++++++++++++\n",
+                                data->ev.input_event_sec,
+                                data->ev.input_event_usec,
+                                libevdev_event_type_get_name(data->ev.type));
+       } else {
+                printf("Event: time %ld.%06ld, type %d (%s), code %d (%s), value %d\n",
+                        data->ev.input_event_sec,
+                        data->ev.input_event_usec,
+                        data->ev.type,
+                        libevdev_event_type_get_name(data->ev.type),
+                        data->ev.code,
+                        libevdev_event_code_get_name(data->ev.type,data->ev.code),
+                        data->ev.value);
+                printf("OLD X %d MEW X %d OLDID %d NEWID %d newerid %d TOUCH %d END%d\n",data->mt.x[0],data->mt.x[1],data->mt.id[0],data->mt.id[1],data->mt.id[2],data->mt.numTouches,data->mt.touch_end);
+       }
+        return 0;
 }
 
 

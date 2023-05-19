@@ -23,7 +23,9 @@ struct mt_status {
     int released;
     int max_slots;
     int x[10],y[10];
+    int id[10];
     int numTouches;
+    int touch_end;
 };
 
 
@@ -37,6 +39,7 @@ struct wlkb_in {
     int fd;
 };
 
+int print_event(struct wlkb_in *data);
 void init(char *device,struct wlkb_in *data);
 void getdeviceresolution(struct  wlkb_in *data);
 void touchstatus(struct wlkb_in *data);
