@@ -13,13 +13,28 @@
 #include <linux/uinput.h>
 #include <stdint.h>
 
+#include <libevdev.h>
+#include <libevdev-util.h>
+#include <libevdev-int.h>
+#include <event-names.h>
+
+struct mt_status {
+    int pressed;
+    int released;
+    int max_slots;
+    int x[10],y[10];
+    int numTouches;
+};
+
+
 struct wlkb_in {
     struct pollfd fds[1];
     struct uinput_setup usetup;
     struct input_absinfo abs_x, abs_y;
     struct input_event ev;
+    struct libevdev *dev;
+    struct mt_status mt;
     int fd;
-    int pressed,released;
 };
 
 void init(char *device,struct wlkb_in *data);

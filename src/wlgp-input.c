@@ -10,7 +10,9 @@
 
 
 void init(char *device,struct wlkb_in *data){
+    int rc=1;
     data->fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
+
     //ioctls
     ioctl(data->fd, UI_SET_EVBIT, EV_KEY);
     ioctl(data->fd, UI_SET_KEYBIT, KEY_SPACE);
@@ -28,6 +30,12 @@ void init(char *device,struct wlkb_in *data){
 
 
     data->fds[0].fd = open(device, O_RDONLY | O_NONBLOCK);
+    rc = libevdev_new_from_fd(data->fds[0].fd, &data->dev);
+	if (rc < 0) {
+		fprintf(stderr, "Failed to init libevdev (%s)\n", strerror(-rc));
+		//goto out;
+	}
+
     if (data->fds[0].fd < 0) {
         printf("error unable open for reading '%s'\n", device);
         //return (0);
@@ -52,11 +60,28 @@ void emit(int fd, uint16_t type, uint16_t code, int val) { struct input_event ie
 }
 
 void touchstatus(struct wlkb_in *data){
-
-      if(data->ev.type==EV_KEY && data->ev.code==BTN_TOUCH && data->ev.value==1){data->pressed=1;}
-           else{data->pressed =  0;}
-      if(!data->pressed && data->ev.type==EV_ABS && data->ev.code==ABS_MT_TRACKING_ID && data->ev.value==-1){data->released=1;}
-           else{data->released =  0;}
+      if(data->ev.type==EV_KEY && data->ev.code==BTN_TOUCH && data->ev.value==1){data->mt.pressed=1;}
+           else{data->mt.pressed =  0;}
+      if(!data->mt.pressed && data->ev.type==EV_ABS && data->ev.code==ABS_MT_TRACKING_ID && data->ev.value==-1){data->mt.released=1;}
+           else{data->mt.released =  0;}
+      data->mt.max_slots=libevdev_get_num_slots(data->dev);
+      int numTouches = 0;
+	for (int i=0; i < libevdev_get_num_slots(data->dev); i++) {
+		if (libevdev_get_slot_value(data->dev, i, ABS_MT_TRACKING_ID) != -1) {
+			numTouches++;
+		}
+	}
+      data->mt.numTouches=numTouches;
+      int inArray = 0;
+      for (int i=0; i < libevdev_get_num_slots(data->dev) && inArray < numTouches; i++) {
+		int id = libevdev_get_slot_value(data->dev, i, ABS_MT_TRACKING_ID);
+		if (id == -1) {
+			// nothing in current slot
+			continue;
+		}
+           data->mt.x[i] = libevdev_get_slot_value(data->dev, i, ABS_MT_POSITION_X);
+           data->mt.y[i] = libevdev_get_slot_value(data->dev, i, ABS_MT_POSITION_Y);
+     }
 }
 
 
