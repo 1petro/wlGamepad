@@ -36,12 +36,14 @@ struct wlkb_in {
     struct input_event ev;
     struct libevdev *dev;
     struct mt_status mt;
+    fd_set rfds;
     int fd;
 };
 
 int print_event(struct wlkb_in *data);
 void init(char *device,struct wlkb_in *data);
 void getdeviceresolution(struct  wlkb_in *data);
+int get_event(struct  wlkb_in *data,int timeout);
 void touchstatus(struct wlkb_in *data);
 void emit(int fd, uint16_t type, uint16_t code, int val);
 void send_event(int fd, uint16_t type, uint16_t code,int val);

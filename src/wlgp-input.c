@@ -59,6 +59,24 @@ void emit(int fd, uint16_t type, uint16_t code, int val) { struct input_event ie
     write(fd, &ie, sizeof(ie)); 
 }
 
+int get_event(struct  wlkb_in *data,int timeout) {
+  // No events queued; just block until an event shows up.
+  if(!timeout || libevdev_has_event_pending(data->dev))
+    return libevdev_next_event(data->dev, LIBEVDEV_READ_FLAG_BLOCKING, &data->ev);
+;
+  FD_ZERO(&data->rfds);
+  FD_SET(data->fds[0].fd, &data->rfds);
+  struct timeval endtime;
+  endtime.tv_sec = timeout;
+  endtime.tv_usec = timeout;
+
+  select(data->fds[0].fd + 1, &data->rfds, NULL, NULL, &endtime);
+  if(FD_ISSET(data->fds[0].fd, &data->rfds))
+    return libevdev_next_event(data->dev, LIBEVDEV_READ_FLAG_BLOCKING, &data->ev);
+
+  return -1;
+}
+
 void touchstatus(struct wlkb_in *data){
       if(data->ev.type==EV_KEY && data->ev.code==BTN_TOUCH && data->ev.value==1){data->mt.pressed=1;}
            else{data->mt.pressed =  0;}
