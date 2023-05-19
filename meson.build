@@ -42,9 +42,12 @@ xdg_shell = declare_dependency(link_with: xdg_shell_lib)
 wlr_layer_shell_unstable_v1_lib = static_library('wlr_layer_shell_unstable_v1_lib', [wlr_layer_shell_unstable_v1_c, wlr_layer_shell_unstable_v1_h])
 wlr_layer_shell_unstable_v1 = declare_dependency(link_with: wlr_layer_shell_unstable_v1_lib)
 
+inc = include_directories('src/libevdev')
+
 executable(
 	'wlgamepad',
-	['src/main.c','src/wlgp-gui.c','src/draw.c','src/wlgp-input.c'], 
+	['src/main.c','src/wlgp-gui.c','src/draw.c','src/wlgp-input.c','src/libevdev/libevdev.c'], 
+	include_directories : inc,
 	dependencies: [wayland_client, wlr_layer_shell_unstable_v1, xdg_shell, rt], 
 	install: true
 )
