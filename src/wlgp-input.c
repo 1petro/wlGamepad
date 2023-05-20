@@ -104,6 +104,17 @@ void touchstatus(struct wlkb_in *data){
      }
 }
 
+int dt_touch_area(struct wlkb_in *data,int x,int y,int length){
+    int border_x = x+length;
+    int border_y = y+length;
+    for(int i=0;i<=data->mt.numTouches;i++){
+       if(data->mt.x[i]<=border_x && data->mt.x[i]>=x
+          && data->mt.y[i]<=border_y && data->mt.y[i]>=y && data->mt.id[i] != -1){return 1;}
+
+       }
+  return 0;
+}
+
 int
 print_event(struct wlkb_in *data)
 {
@@ -121,7 +132,7 @@ print_event(struct wlkb_in *data)
                         data->ev.code,
                         libevdev_event_code_get_name(data->ev.type,data->ev.code),
                         data->ev.value);
-                printf("OLD X %d MEW X %d OLDID %d NEWID %d newerid %d TOUCH %d END%d\n",data->mt.x[0],data->mt.x[1],data->mt.id[0],data->mt.id[1],data->mt.id[2],data->mt.numTouches,data->mt.touch_end);
+                printf("OLD X %d NEW X %d OLDY %d NEWY %d OLDID %d NEWID %d newerid %d TOUCH %d END%d  AREA %d AREA2%d\n",data->mt.x[0],data->mt.x[1],data->mt.y[0],data->mt.y[1],data->mt.id[0],data->mt.id[1],data->mt.id[2],data->mt.numTouches,data->mt.touch_end,dt_touch_area(data,200,200,100),dt_touch_area(data,400,500,80));
        }
         return 0;
 }
@@ -132,4 +143,10 @@ void send_event(int fd, uint16_t type, uint16_t code,int val){
      emit(fd, EV_SYN, SYN_REPORT, 0);
 }
 
+void close_fd(struct wlkb_in *data){
+    libevdev_free(data->dev);
+    close(data->fds[0].fd);
+    ioctl(data->fd, UI_DEV_DESTROY); 
+    close(data->fd);
+}
 
