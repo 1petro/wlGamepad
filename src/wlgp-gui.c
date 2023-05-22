@@ -13,7 +13,7 @@
 #include <time.h>   // nanosleep
 #include <unistd.h> // shm, ftruncate
 #include <poll.h>
-#include <src/draw.h>
+#include <src/wlgp-gui.h>
 #include "wlr-layer-shell-unstable-v1.h"
 #include "xdg-shell-client-protocol.h"
 
@@ -166,6 +166,11 @@ void wlgp_flush(struct wlgp *app)
                 fprintf(stderr, "wl_display_dispatch failed\n");
                 exit(EXIT_FAILURE);
         }
+}
+
+void render(struct wlgp *app,int anchor,int width,int height){
+        wlgp_create_surface(app,anchor,width,height);
+        wlgp_flush(app);
 }
 
 void wlgp_destroy_surface(struct wlgp *app)
