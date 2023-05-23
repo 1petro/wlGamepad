@@ -24,7 +24,7 @@ int width=WIDTH;
 int height=HEIGHT;
 bool show_layout=0,press;
 struct wlkb_in d = {0};
-char input_dev[] = "/dev/input/event4\0";
+char input_dev[] = "/dev/input/event3\0";
 init(input_dev,&d);
 getdeviceresolution(&d);
 
@@ -61,15 +61,33 @@ getdeviceresolution(&d);
                     int rc = get_event(&d,timeout_ms); //read input events
                     if(rc == 0) {//code
                                 touchstatus(&d); //report touch status
-                                if(d.mt.pressed){press=1;}else if(d.mt.released){press=0;}
-                                ret=dt_touch_area(&d,970,1050,100);
+                                if(d.mt.pressed){press=1;}else if(d.mt.touch_end){press=0;}
+                                ret=dt_touch_area(&d,970,1050,100,100);
                                 if(d.mt.pressed && ret && !show_layout){render(&gp_layout,DIRC_BOTTOM,WIDTH,HEIGHT);
                                                                        show_layout=1;}
                                 else if(d.mt.pressed && ret && show_layout){wlgp_destroy_surface(&gp_layout);
                                                                        show_layout=0;}
+                                if(show_layout){
+                                                ret=dt_touch_area(&d,445,238,127,366);
+                    if(ret && press){send_event(d.fd,EV_KEY,KEY_UP,1);}else{send_event(d.fd,EV_KEY,KEY_UP,0);}
+                    ret=dt_touch_area(&d,175,222,366,127);
+                    if(ret && press){send_event(d.fd,EV_KEY,KEY_LEFT,1);}else{send_event(d.fd,EV_KEY,KEY_LEFT,0);}
+                    ret=dt_touch_area(&d,175,222,127,366);
+                    if(ret && press){send_event(d.fd,EV_KEY,KEY_DOWN,1);}else{send_event(d.fd,EV_KEY,KEY_DOWN,0);}
+                    ret=dt_touch_area(&d,175,508,366,127);
+                    if(ret && press){send_event(d.fd,EV_KEY,KEY_RIGHT,1);}else{send_event(d.fd,EV_KEY,KEY_RIGHT,0);}
+                    ret=dt_touch_area(&d,270,1590,150,150);
+                    if(ret && press){send_event(d.fd,EV_KEY,KEY_SPACE,1);}else{send_event(d.fd,EV_KEY,KEY_SPACE,0);}
+                    ret=dt_touch_area(&d,143,1733,150,150);
+                    if(ret && press){send_event(d.fd,EV_KEY,KEY_ENTER,1);}else{send_event(d.fd,EV_KEY,KEY_ENTER,0);}
+                    ret=dt_touch_area(&d,488,1733,150,150);
+                    if(ret && press){send_event(d.fd,EV_KEY,KEY_S,1);}else{send_event(d.fd,EV_KEY,KEY_S,0);}
+                    ret=dt_touch_area(&d,270,1860,150,150);
+                    if(ret && press){send_event(d.fd,EV_KEY,KEY_X,1);}else{send_event(d.fd,EV_KEY,KEY_X,0);}
+                    }
 
                     //printf("toggle %d show %d\n",show_layout,ret);
-                    // print_event(&d); //debugging only print events reported by touch status
+//                    print_event(&d); //debugging only print events reported by touch status
                     }
 
 
