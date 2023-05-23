@@ -45,7 +45,7 @@ void init(char *device,struct wlkb_in *data);
 void getdeviceresolution(struct  wlkb_in *data);
 int get_event(struct  wlkb_in *data,int timeout);
 void touchstatus(struct wlkb_in *data);
-int dt_touch_area(struct wlkb_in *data,int x,int y,int length);
+int dt_touch_area(struct wlkb_in *data,int x,int y,int length_x,int length_y);
 void emit(int fd, uint16_t type, uint16_t code, int val);
 int syn(struct wlkb_in *data);
 void send_event(int fd, uint16_t type, uint16_t code,int val);

@@ -14,8 +14,19 @@ void init(char *device,struct wlkb_in *data){
     data->fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
 
     //ioctls
+    int key;
+    __u16 keys[3][29] = {{KEY_Q, KEY_W, KEY_E, KEY_R, KEY_T, KEY_Y, KEY_U, KEY_I, KEY_O, KEY_P, KEY_A, KEY_S, KEY_D, KEY_F, KEY_G, KEY_H, KEY_J, KEY_K, KEY_L, KEY_Z, KEY_X, KEY_C, KEY_V, KEY_B, KEY_N, KEY_M, KEY_SLASH, KEY_DOT},
+                     {KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_0, KEY_MINUS, KEY_EQUAL, KEY_LEFTBRACE, KEY_RIGHTBRACE, KEY_SEMICOLON, KEY_APOSTROPHE, KEY_BACKSLASH, KEY_COMMA, KEY_DOT, KEY_SLASH, KEY_X, KEY_C, KEY_V, KEY_B, KEY_N, KEY_M, KEY_SLASH, KEY_DOT},
+                     {KEY_LEFTSHIFT, KEY_LEFTCTRL, KEY_ESC, KEY_TAB, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_SPACE, KEY_ENTER, KEY_BACKSPACE}};
+
     ioctl(data->fd, UI_SET_EVBIT, EV_KEY);
-    ioctl(data->fd, UI_SET_KEYBIT, KEY_SPACE);
+    //ioctl(data->fd, UI_SET_KEYBIT, KEY_SPACE);
+    for(key = 0; key < 28; key++)
+    ioctl(data->fd, UI_SET_KEYBIT, keys[0][key]);
+    for(key = 0; key < 18; key++)
+    ioctl(data->fd, UI_SET_KEYBIT, keys[1][key]);
+    for(key = 0; key < 11; key++)
+    ioctl(data->fd, UI_SET_KEYBIT, keys[2][key]);
 
     memset(&data->usetup, 0, sizeof(data->usetup)); 
     data->usetup.id.bustype = BUS_USB;
@@ -23,7 +34,7 @@ void init(char *device,struct wlkb_in *data){
     /* sample vendor */
     data->usetup.id.product = 0x5678; 
     /* sample product */
-    strcpy(data->usetup.name, "Example device"); 
+    strcpy(data->usetup.name, "wlGamepad"); 
     ioctl(data->fd, UI_DEV_SETUP, &data->usetup);
     ioctl(data->fd, UI_DEV_CREATE);
     sleep(1);
@@ -104,9 +115,9 @@ void touchstatus(struct wlkb_in *data){
      }
 }
 
-int dt_touch_area(struct wlkb_in *data,int x,int y,int length){
-    int border_x = x+length;
-    int border_y = y+length;
+int dt_touch_area(struct wlkb_in *data,int x,int y,int length_x,int length_y){
+    int border_x = x+length_x;
+    int border_y = y+length_y;
     for(int i=0;i<=data->mt.numTouches;i++){
        if(data->mt.x[i]<=border_x && data->mt.x[i]>=x
           && data->mt.y[i]<=border_y && data->mt.y[i]>=y && data->mt.id[i] != -1){return 1;}
@@ -132,7 +143,7 @@ print_event(struct wlkb_in *data)
                         data->ev.code,
                         libevdev_event_code_get_name(data->ev.type,data->ev.code),
                         data->ev.value);
-                printf("OLD X %d NEW X %d OLDY %d NEWY %d OLDID %d NEWID %d newerid %d TOUCH %d END%d  AREA %d AREA2%d\n",data->mt.x[0],data->mt.x[1],data->mt.y[0],data->mt.y[1],data->mt.id[0],data->mt.id[1],data->mt.id[2],data->mt.numTouches,data->mt.touch_end,dt_touch_area(data,200,200,100),dt_touch_area(data,970,1050,100));
+                printf("OLD X %d NEW X %d OLDY %d NEWY %d OLDID %d NEWID %d newerid %d TOUCH %d END%d  AREA %d AREA2%d\n",data->mt.x[0],data->mt.x[1],data->mt.y[0],data->mt.y[1],data->mt.id[0],data->mt.id[1],data->mt.id[2],data->mt.numTouches,data->mt.touch_end,dt_touch_area(data,200,200,100,100),dt_touch_area(data,970,1050,100,100));
        }
         return 0;
 }
