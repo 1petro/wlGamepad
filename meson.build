@@ -46,7 +46,7 @@ inc = include_directories('src/libevdev')
 
 executable(
 	'wlgamepad',
-	['src/main.c','src/wlgp-gui.c','src/draw.c','src/wlgp-input.c','src/libevdev/libevdev.c'], 
+	['src/main.c','src/wlgp-gui.c','src/draw.c','src/wlgp-input.c','src/libevdev/libevdev.c','src/image.c','src/config.c','src/libevdev/libevdev-names.c'], 
 	include_directories : inc,
 	dependencies: [wayland_client, wlr_layer_shell_unstable_v1, xdg_shell, rt], 
 	install: true
