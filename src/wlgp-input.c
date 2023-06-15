@@ -1,3 +1,8 @@
+#define _POSIX_C_SOURCE 200809L
+#ifndef DEBUG
+#define NDEBUG
+#endif
+
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -7,7 +12,7 @@
 #include <stdlib.h>
 #include <linux/uinput.h>
 #include <src/wlgp-input.h>
-
+#include <dirent.h>
 
 void init(char *device,struct wlkb_in *data){
     int rc=1;
@@ -52,6 +57,27 @@ void init(char *device,struct wlkb_in *data){
         //return (0);
     }
 }
+
+void getdevicename(struct wlkb_in *data){
+    int fdinput,key;
+    DIR *inputdevs = opendir("/dev/input");
+    struct dirent *dptr;
+    fdinput = -1;
+    while((dptr = readdir(inputdevs))) {
+      if((fdinput=openat(dirfd(inputdevs), dptr->d_name, O_RDONLY)) != -1 && ioctl(fdinput, EVIOCGBIT(0, sizeof(key)), &key) != -1 && key>>EV_ABS & 1)
+        break;
+      if(fdinput != -1){
+        close(fdinput);
+        fdinput = -1;
+      }
+    }
+    if(fdinput == -1) {
+      fprintf(stderr, "no touch device found in /dev/input\n");
+      exit(-1);
+    }
+   strcpy(data->device_name,"/dev/input/");
+   strcat(data->device_name,dptr->d_name);
+ }
 
 
 void getdeviceresolution(struct  wlkb_in *data){

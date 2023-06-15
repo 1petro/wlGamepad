@@ -38,10 +38,12 @@ struct wlkb_in {
     struct mt_status mt;
     fd_set rfds;
     int fd;
+    char device_name[25];
 };
 
 int print_event(struct wlkb_in *data);
 void init(char *device,struct wlkb_in *data);
+void getdevicename(struct wlkb_in *data);
 void getdeviceresolution(struct  wlkb_in *data);
 int get_event(struct  wlkb_in *data,int timeout);
 void touchstatus(struct wlkb_in *data);
