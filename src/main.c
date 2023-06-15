@@ -13,10 +13,10 @@
 #include <sys/select.h>
 #include <src/draw.h>
 #include <src/wlgp-gui.h>
-
+#include <src/config.h>
 #include "wlr-layer-shell-unstable-v1.h"
 #include "xdg-shell-client-protocol.h"
-int main() {
+int main(int argc,char *argv[]) {
 ///////////////INIT BEGIN/////////////////
 int timeout_ms = 4;
 int ret;
@@ -24,8 +24,11 @@ int width=WIDTH;
 int height=HEIGHT;
 bool show_layout=0,press;
 struct wlkb_in d = {0};
-char input_dev[] = "/dev/input/event3\0";
-init(input_dev,&d);
+Gamepad gp;
+getconfig(&gp,"conf.cfg");
+getdevicename(&d);
+getoptions(&d,argc,argv);
+init(d.device_name,&d);
 getdeviceresolution(&d);
 
         struct wlgp gp_layout = {0};
@@ -69,21 +72,21 @@ getdeviceresolution(&d);
                                                                        show_layout=0;}
                                 if(show_layout){
                                                 ret=dt_touch_area(&d,445,238,127,366);
-                    if(ret && press){send_event(d.fd,EV_KEY,KEY_UP,1);}else{send_event(d.fd,EV_KEY,KEY_UP,0);}
+                    if(ret && press){send_event(d.fd,EV_KEY,gp.dpad_up,1);}else{send_event(d.fd,EV_KEY,gp.dpad_up,0);}
                     ret=dt_touch_area(&d,175,222,366,127);
-                    if(ret && press){send_event(d.fd,EV_KEY,KEY_LEFT,1);}else{send_event(d.fd,EV_KEY,KEY_LEFT,0);}
+                    if(ret && press){send_event(d.fd,EV_KEY,gp.dpad_left,1);}else{send_event(d.fd,EV_KEY,gp.dpad_left,0);}
                     ret=dt_touch_area(&d,175,222,127,366);
-                    if(ret && press){send_event(d.fd,EV_KEY,KEY_DOWN,1);}else{send_event(d.fd,EV_KEY,KEY_DOWN,0);}
+                    if(ret && press){send_event(d.fd,EV_KEY,gp.dpad_down,1);}else{send_event(d.fd,EV_KEY,gp.dpad_down,0);}
                     ret=dt_touch_area(&d,175,508,366,127);
-                    if(ret && press){send_event(d.fd,EV_KEY,KEY_RIGHT,1);}else{send_event(d.fd,EV_KEY,KEY_RIGHT,0);}
+                    if(ret && press){send_event(d.fd,EV_KEY,gp.dpad_right,1);}else{send_event(d.fd,EV_KEY,gp.dpad_right,0);}
                     ret=dt_touch_area(&d,270,1590,150,150);
-                    if(ret && press){send_event(d.fd,EV_KEY,KEY_SPACE,1);}else{send_event(d.fd,EV_KEY,KEY_SPACE,0);}
+                    if(ret && press){send_event(d.fd,EV_KEY,gp.square,1);}else{send_event(d.fd,EV_KEY,gp.square,0);}
                     ret=dt_touch_area(&d,143,1733,150,150);
-                    if(ret && press){send_event(d.fd,EV_KEY,KEY_ENTER,1);}else{send_event(d.fd,EV_KEY,KEY_ENTER,0);}
+                    if(ret && press){send_event(d.fd,EV_KEY,gp.x,1);}else{send_event(d.fd,EV_KEY,gp.x,0);}
                     ret=dt_touch_area(&d,488,1733,150,150);
-                    if(ret && press){send_event(d.fd,EV_KEY,KEY_S,1);}else{send_event(d.fd,EV_KEY,KEY_S,0);}
+                    if(ret && press){send_event(d.fd,EV_KEY,gp.triangle,1);}else{send_event(d.fd,EV_KEY,gp.triangle,0);}
                     ret=dt_touch_area(&d,270,1860,150,150);
-                    if(ret && press){send_event(d.fd,EV_KEY,KEY_X,1);}else{send_event(d.fd,EV_KEY,KEY_X,0);}
+                    if(ret && press){send_event(d.fd,EV_KEY,gp.circle,1);}else{send_event(d.fd,EV_KEY,gp.circle,0);}
                     }
 
                     //printf("toggle %d show %d\n",show_layout,ret);
