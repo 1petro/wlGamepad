@@ -31,5 +31,6 @@ typedef struct {
 
 int padding(int read);
 void BMPImgread(BMPImg *img,char *imgname);
-void draw_gplayout(BMPImg *img,int transparency);
+void draw_gplayout(uint32_t * argb,BMPImg *img,int transparency);
+void print_pixels(BMPImg *img,int transparency );
 #endif

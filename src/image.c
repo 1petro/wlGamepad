@@ -67,7 +67,7 @@ free(pixels);
 }
 
 
-void draw_gplayout(BMPImg *img,int transparency ){
+void print_pixels(BMPImg *img,int transparency ){//debugging only
    int size=img->imgheader->height_px * img->imgheader->width_px;
    int row = img->imgheader->width_px;
    for (int i=0;i<size;i++){
@@ -80,3 +80,16 @@ void draw_gplayout(BMPImg *img,int transparency ){
    free(img->imgdata);
    free(img->pixel);
 }
+
+
+void draw_gplayout(uint32_t * argb,BMPImg *img,int transparency ){
+int cnt=0;
+int alpha = transparency << 24;
+for (int i=img->imgheader->height_px-1;i>=0;i--){
+       for(int j=0;j<img->imgheader->width_px;j++){
+         argb[cnt] = alpha | img->pixel[j+i*img->imgheader->width_px];
+         cnt++;
+       }
+}
+}
+
