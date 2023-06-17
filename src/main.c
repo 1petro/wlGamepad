@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include <sys/select.h>
 #include <src/draw.h>
+#include <src/image.h>
 #include <src/wlgp-gui.h>
 #include <src/config.h>
 #include "wlr-layer-shell-unstable-v1.h"
@@ -24,12 +25,14 @@ int width=WIDTH;
 int height=HEIGHT;
 bool show_layout=0,press;
 struct wlkb_in d = {0};
+//BMPImg img;
 Gamepad gp;
 getconfig(&gp,"conf.cfg");
 getdevicename(&d);
 getoptions(&d,argc,argv);
 init(d.device_name,&d);
 getdeviceresolution(&d);
+//BMPImgread(&img,"test.bmp");
 
         struct wlgp gp_layout = {0};
         struct wlgp popup = {0};
@@ -55,6 +58,7 @@ getdeviceresolution(&d);
         draw_dpad(rgb.gp_layout,100,height-80,WIDTH,50,10,DIRC_BOTTOM,WHITE);
         draw_dpad(rgb.gp_layout,190,height-170,WIDTH,50,10,DIRC_RIGHT,WHITE);
         draw_dpad(rgb.gp_layout,60,height-170,WIDTH,50,10,DIRC_LEFT,WHITE);
+        //draw_gplayout(rgb.gp_layout,&img,0x7D);
 
         render(&popup,DIRC_TOP,POPUP_WIDTH,POPUP_HEIGHT);
 
