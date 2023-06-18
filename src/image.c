@@ -1,3 +1,4 @@
+
 #define _POSIX_C_SOURCE 200809L
 #ifndef DEBUG
 #define NDEBUG
@@ -93,3 +94,18 @@ for (int i=img->imgheader->height_px-1;i>=0;i--){
 }
 }
 
+void draw_gplayoutwoffset(uint32_t * argb,BMPImg *img,int offset_x,int offset_y,int width,int transparency ){
+int offset = offset_y*width + offset_x;
+int alpha = transparency << 24;
+if(width<img->imgheader->width_px || img->imgheader->width_px+offset>width){
+fprintf(stderr,"Error invalid area size\n");
+exit(EXIT_FAILURE);
+}
+for (int i=img->imgheader->height_px-1;i>=0;i--){
+       for(int j=0;j<img->imgheader->width_px;j++){
+         argb[offset] = alpha | img->pixel[j+i*img->imgheader->width_px];
+         offset++;
+       }
+offset = offset - img->imgheader->width_px + width;
+}
+}
