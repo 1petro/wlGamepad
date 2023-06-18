@@ -27,9 +27,10 @@ bool show_layout=0,press;
 struct wlkb_in d = {0};
 //BMPImg img;
 Gamepad gp;
-getconfig(&gp,"conf.cfg");
+geometry gmlayout = {0,0,0,0,WIDTH,HEIGHT} , gmpopup = {0,0,0,0,POPUP_WIDTH,POPUP_HEIGHT};
 getdevicename(&d);
 getoptions(&d,argc,argv);
+getconfig(&gp,d.conf_name);
 init(d.device_name,&d);
 getdeviceresolution(&d);
 //BMPImgread(&img,"test.bmp");
@@ -58,9 +59,9 @@ getdeviceresolution(&d);
         draw_dpad(rgb.gp_layout,100,height-80,WIDTH,50,10,DIRC_BOTTOM,WHITE);
         draw_dpad(rgb.gp_layout,190,height-170,WIDTH,50,10,DIRC_RIGHT,WHITE);
         draw_dpad(rgb.gp_layout,60,height-170,WIDTH,50,10,DIRC_LEFT,WHITE);
-        //draw_gplayout(rgb.gp_layout,&img,0x7D);
+        //draw_gplayoutwoffset(rgb.gp_layout,&img,350,0,WIDTH,0x7D);
 
-        render(&popup,DIRC_TOP,POPUP_WIDTH,POPUP_HEIGHT);
+        render(&popup,DIRC_TOP,&gmpopup);
 
 ///////////////INIT END///////////////////
           while(true) { //Main loop begin
@@ -70,7 +71,7 @@ getdeviceresolution(&d);
                                 touchstatus(&d); //report touch status
                                 if(d.mt.pressed){press=1;}else if(d.mt.touch_end){press=0;}
                                 ret=dt_touch_area(&d,970,1050,100,100);
-                                if(d.mt.pressed && ret && !show_layout){render(&gp_layout,DIRC_BOTTOM,WIDTH,HEIGHT);
+                                if(d.mt.pressed && ret && !show_layout){render(&gp_layout,DIRC_BOTTOM,&gmlayout);
                                                                        show_layout=1;}
                                 else if(d.mt.pressed && ret && show_layout){wlgp_destroy_surface(&gp_layout);
                                                                        show_layout=0;}
