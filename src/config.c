@@ -14,7 +14,7 @@
 int getoptions(struct wlkb_in *data,int argc,char *argv[]){
   int f;
   int rc=strncmp(data->device_name,"/dev/input",10);
-  while((f = getopt(argc, argv, "d:c:h")) != -1) {
+  while((f = getopt(argc, argv, "d:c:l:h")) != -1) {
     switch (f) {
       case 'd':
         fprintf(stderr,"un %s",optarg);
@@ -26,8 +26,12 @@ int getoptions(struct wlkb_in *data,int argc,char *argv[]){
         strncpy(data->conf_name,optarg,25);
         strcpy(data->conf_name+25,"\0");
         break;
+      case 'l':
+        strncpy(data->img_name,optarg,25);
+        strcpy(data->img_name+25,"\0");
+        break;
       case 'h':
-        printf("usage: [options]\npossible options are:\n -h: print this help\n -d: set path to inputdevice\n -c: load gamepad config file\n");
+        printf("\nusage: [options]\npossible options are:\n -h: print this help\n -d: set path to inputdevice\n -c: load gamepad config file\n -l: load layout image for wlgamepad\n\n" );
         exit(0);
         break;
       case '?':

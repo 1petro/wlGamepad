@@ -38,8 +38,7 @@ struct wlkb_in {
     struct mt_status mt;
     fd_set rfds;
     int fd;
-    char device_name[25];
-    char conf_name[25];
+    char device_name[25],conf_name[25],img_name[25];
 };
 
 int print_event(struct wlkb_in *data);
