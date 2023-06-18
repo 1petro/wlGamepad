@@ -12,17 +12,22 @@
 #include <src/wlgp-input.h>
 
 int getoptions(struct wlkb_in *data,int argc,char *argv[]){
-  int c;
+  int f;
   int rc=strncmp(data->device_name,"/dev/input",10);
-  while((c = getopt(argc, argv, "d:f:h")) != -1) {
-    switch (c) {
+  while((f = getopt(argc, argv, "d:c:h")) != -1) {
+    switch (f) {
       case 'd':
+        fprintf(stderr,"un %s",optarg);
         if(rc==0){break;}else{
         strncpy(data->device_name,optarg,25);
         strcpy(data->device_name+25,"\0");}
         break;
+      case 'c':
+        strncpy(data->conf_name,optarg,25);
+        strcpy(data->conf_name+25,"\0");
+        break;
       case 'h':
-        printf("usage: [options]\npossible options are:\n -h: print this help\n -d: set path to inputdevice\n");
+        printf("usage: [options]\npossible options are:\n -h: print this help\n -d: set path to inputdevice\n -c: load gamepad config file\n");
         exit(0);
         break;
       case '?':

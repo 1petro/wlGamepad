@@ -39,6 +39,7 @@ struct wlkb_in {
     fd_set rfds;
     int fd;
     char device_name[25];
+    char conf_name[25];
 };
 
 int print_event(struct wlkb_in *data);
