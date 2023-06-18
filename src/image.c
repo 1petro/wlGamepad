@@ -1,4 +1,3 @@
-
 #define _POSIX_C_SOURCE 200809L
 #ifndef DEBUG
 #define NDEBUG
@@ -16,8 +15,13 @@ int padding(int read){
 }
 
 
-void BMPImgread(BMPImg *img,char *imgname){
+int BMPImgread(BMPImg *img,char *imgname){
    FILE *file = fopen(imgname, "rb");
+   if (file == NULL)
+   {
+        img->pixel=NULL;
+        return 1;
+   }
    fseek(file, 0, SEEK_END);
    unsigned long fileLen=ftell(file);
    img->imgheader=malloc(54*sizeof(BMPHeader));
@@ -65,6 +69,7 @@ void BMPImgread(BMPImg *img,char *imgname){
     free(pixels[i]);
     }
 free(pixels);
+return 0;
 }
 
 
@@ -108,4 +113,25 @@ for (int i=img->imgheader->height_px-1;i>=0;i--){
        }
 offset = offset - img->imgheader->width_px + width;
 }
+}
+
+void imgparse(BMPImg *img){
+   FILE *fptr;
+   fptr = fopen("img.txt","w");
+
+   if(fptr == NULL)
+   {
+      printf("Error! please create an img.txt file for data to be parsed in");
+      exit(1);
+   }
+
+   fprintf(fptr,"{");
+   for(int i=0;i<img->imgheader->width_px*img->imgheader->height_px;i++){
+   fprintf(fptr,"0x%02X",img->pixel[i]);
+   if(i==img->imgheader->width_px-1){continue;}else{fprintf(fptr,",");}
+   }
+   fprintf(fptr,"}");
+
+
+   fclose(fptr);
 }
