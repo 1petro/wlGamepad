@@ -16,6 +16,14 @@
 #define STRIDE WIDTH * 4
 #define SIZE STRIDE * HEIGHT
 
+typedef struct {
+        int top;
+        int right;
+        int bottom;
+        int left;
+        int width;
+        int height;
+}geometry;
 
 struct wlgp {
         struct wl_buffer *wl_buffer;
@@ -35,8 +43,8 @@ struct wlgp {
 void wlgp_flush(struct wlgp *app);
 void wlgp_destroy_surface(struct wlgp *app);
 void wlgp_destroy(struct wlgp *app);
-void wlgp_create_surface(struct wlgp *app,int anchor,int width,int height);
-void render(struct wlgp *app,int anchor,int width,int height);
+void wlgp_create_surface(struct wlgp *app,int anchor,geometry *gm);
+void render(struct wlgp *app,int anchor,geometry *gm);
 uint32_t *wlgp_create_argb_buffer(struct wlgp *app);
 void layer_surface_configure(void *data, struct zwlr_layer_surface_v1 *surface, uint32_t serial, uint32_t w, uint32_t h);
 void layer_surface_closed(void *data, struct zwlr_layer_surface_v1 *surface);

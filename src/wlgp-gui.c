@@ -95,10 +95,10 @@ handle_global_remove(void *data, struct wl_registry *registry, uint32_t name)
 }
 
 void
-wlgp_create_surface(struct wlgp *app,int anchor,int width,int height)
+wlgp_create_surface(struct wlgp *app,int anchor,geometry *gm)
 {
-        int stride = width * 4;
-        int size = stride * height;
+        int stride = gm->width * 4;
+        int size = stride * gm->height;
 	const static struct wl_registry_listener wl_registry_listener = {
 		.global = handle_global,
 		.global_remove = handle_global_remove,
@@ -127,8 +127,8 @@ wlgp_create_surface(struct wlgp *app,int anchor,int width,int height)
 		fprintf(stderr, "wl_shm_create_pool failed\n");
 		exit(EXIT_FAILURE);
 	}
-        
-	app->wl_buffer = wl_shm_pool_create_buffer(pool, 0, width,height, stride, WL_SHM_FORMAT_ARGB8888);
+
+ 	app->wl_buffer = wl_shm_pool_create_buffer(pool, 0, gm->width,gm->height, stride, WL_SHM_FORMAT_ARGB8888);
 	wl_shm_pool_destroy(pool);
 	if (app->wl_buffer == NULL) {
 		fprintf(stderr, "wl_shm_pool_create_buffer failed\n");
@@ -146,9 +146,9 @@ wlgp_create_surface(struct wlgp *app,int anchor,int width,int height)
 		exit(EXIT_FAILURE);
 	}
 
-	zwlr_layer_surface_v1_set_size(app->zwlr_layer_surface, width, height);
+	zwlr_layer_surface_v1_set_size(app->zwlr_layer_surface, gm->width, gm->height);
 	zwlr_layer_surface_v1_set_anchor(app->zwlr_layer_surface, anchor);
-        //zwlr_layer_surface_v1_set_margin(app->zwlr_layer_surface,0, 0, 50, 30);
+        zwlr_layer_surface_v1_set_margin(app->zwlr_layer_surface,gm->top, gm->right, gm->bottom, gm->left);
 	zwlr_layer_surface_v1_add_listener(app->zwlr_layer_surface, &zwlr_layer_surface_listener, app->zwlr_layer_surface);
 
 	wl_surface_commit(app->wl_surface);
@@ -168,8 +168,8 @@ void wlgp_flush(struct wlgp *app)
         }
 }
 
-void render(struct wlgp *app,int anchor,int width,int height){
-        wlgp_create_surface(app,anchor,width,height);
+void render(struct wlgp *app,int anchor,geometry *gm){
+        wlgp_create_surface(app,anchor,gm);
         wlgp_flush(app);
 }
 
