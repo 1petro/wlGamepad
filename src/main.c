@@ -15,6 +15,7 @@
 #include <src/image.h>
 #include <src/wlgp-gui.h>
 #include <src/config.h>
+#include <src/layout.h>
 #include "wlr-layer-shell-unstable-v1.h"
 #include "xdg-shell-client-protocol.h"
 int main(int argc,char *argv[]) {
@@ -27,16 +28,18 @@ bool show_layout=0,press;
 struct wlkb_in d = {0};
 //BMPImg img;
 Gamepad gp;
-geometry gmlayout = {0,0,0,0,WIDTH,HEIGHT} , gmpopup = {0,0,0,0,POPUP_WIDTH,POPUP_HEIGHT};
+geometry gmlayout = {0,0,0,0,WIDTH,HEIGHT} , gmpopup = {0,0,0,0,POPUP_WIDTH,POPUP_HEIGHT}; //,gmlayoutdpad = {0,50,50,0,WIDTH,HEIGHT};
 getdevicename(&d);
 getoptions(&d,argc,argv);
 getconfig(&gp,d.conf_name);
 init(d.device_name,&d);
 getdeviceresolution(&d);
-//BMPImgread(&img,"test.bmp");
-
+//BMPImgread(&img,d.img_name);
+//setlayout(&img,layout_1,250*250);
+//imgparse(&img);
         struct wlgp gp_layout = {0};
         struct wlgp popup = {0};
+        //struct wlgp backup = {0};
         struct argb rgb;
         gp_layout.wl_display = popup.wl_display = wl_display_connect(NULL);
         assert(gp_layout.wl_display);
@@ -59,10 +62,10 @@ getdeviceresolution(&d);
         draw_dpad(rgb.gp_layout,100,height-80,WIDTH,50,10,DIRC_BOTTOM,WHITE);
         draw_dpad(rgb.gp_layout,190,height-170,WIDTH,50,10,DIRC_RIGHT,WHITE);
         draw_dpad(rgb.gp_layout,60,height-170,WIDTH,50,10,DIRC_LEFT,WHITE);
-        //draw_gplayoutwoffset(rgb.gp_layout,&img,350,0,WIDTH,0x7D);
-
+        //draw_gplayoutwoffset(rgb.gp_layout,&img,0,0,WIDTH,0x7D);
+//exit(0);
         render(&popup,DIRC_TOP,&gmpopup);
-
+        //backup=gp_layout;
 ///////////////INIT END///////////////////
           while(true) { //Main loop begin
 
@@ -71,9 +74,9 @@ getdeviceresolution(&d);
                                 touchstatus(&d); //report touch status
                                 if(d.mt.pressed){press=1;}else if(d.mt.touch_end){press=0;}
                                 ret=dt_touch_area(&d,970,1050,100,100);
-                                if(d.mt.pressed && ret && !show_layout){render(&gp_layout,DIRC_BOTTOM,&gmlayout);
+                                if(d.mt.pressed && ret && !show_layout){render(&gp_layout,DIRC_BOTTOM,&gmlayout);//render(&backup,DIRC_BOTTOMRIGHT,&gmlayoutdpad);
                                                                        show_layout=1;}
-                                else if(d.mt.pressed && ret && show_layout){wlgp_destroy_surface(&gp_layout);
+                                else if(d.mt.pressed && ret && show_layout){wlgp_destroy_surface(&gp_layout);//wlgp_destroy_surface(&backup);
                                                                        show_layout=0;}
                                 if(show_layout){
                                                 ret=dt_touch_area(&d,445,238,127,366);
@@ -101,7 +104,7 @@ getdeviceresolution(&d);
 
                     else if (rc==-1){
                                     if(!press){
-                                              wlgp_destroy_surface(&gp_layout);
+                                              wlgp_destroy_surface(&gp_layout);//wlgp_destroy_surface(&backup);
                                               show_layout=0;
                                               //printf("Exiting.....\n");
                                               }
