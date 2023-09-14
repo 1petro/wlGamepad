@@ -11,19 +11,16 @@
 #include <libevdev-int.h>
 #include <event-names.h>
 #include <src/wlgp-input.h>
+#include <src/wlgp-gui.h>
 
-typedef struct {
-   uint32_t dpad_up;
-   uint32_t dpad_down;
-   uint32_t dpad_left;
-   uint32_t dpad_right;
-   uint32_t x;
-   uint32_t circle;
-   uint32_t square;
-   uint32_t triangle;
-}Gamepad;
+#define BUTTON_LENGTH 15
+#define MAX_BUF_SIZE 120
+#define DEFAULT_KEYS 10
+#define DEFAULT_PROP 6
+#define MAX_DEFAULT_BUTTONS 12
 
-int keyparse(char *data, int st, char *tmp);
-int getconfig(Gamepad *gp,char *conf_name);
+//int keyparse(char **data,char *button[],Gamepad *gp,int count,int ptr);
+int getconfig(Gamepad gp[],struct wlkb_in *d);
+void adj_scale(Gamepad gp[],int scale,int begin,int end);
 int getoptions(struct wlkb_in *data,int argc,char *argv[]);
 #endif

@@ -9,6 +9,7 @@
 #include <poll.h>
 #include <src/wlgp-input.h>
 #include "libevdev.h"
+#include <sys/mman.h>
 #include <stdbool.h>
 #include <sys/select.h>
 #include <src/draw.h>
@@ -18,103 +19,135 @@
 #include <src/layout.h>
 #include "wlr-layer-shell-unstable-v1.h"
 #include "xdg-shell-client-protocol.h"
-int main(int argc,char *argv[]) {
-///////////////INIT BEGIN/////////////////
-int timeout_ms = 4;
-int ret;
-int width=WIDTH;
-int height=HEIGHT;
-bool show_layout=0,press;
-struct wlkb_in d = {0};
-//BMPImg img;
-Gamepad gp;
-geometry gmlayout = {0,0,0,0,WIDTH,HEIGHT} , gmpopup = {0,0,0,0,POPUP_WIDTH,POPUP_HEIGHT}; //,gmlayoutdpad = {0,50,50,0,WIDTH,HEIGHT};
-getdevicename(&d);
-getoptions(&d,argc,argv);
-getconfig(&gp,d.conf_name);
-init(d.device_name,&d);
-getdeviceresolution(&d);
-//BMPImgread(&img,d.img_name);
-//setlayout(&img,layout_1,250*250);
-//imgparse(&img);
-        struct wlgp gp_layout = {0};
-        struct wlgp popup = {0};
-        //struct wlgp backup = {0};
-        struct argb rgb;
-        gp_layout.wl_display = popup.wl_display = wl_display_connect(NULL);
-        assert(gp_layout.wl_display);
-        if (gp_layout.wl_display == NULL) {
-                fprintf(stderr, "wl_display_connect failed\n");
-                return EXIT_FAILURE;
-        }
 
-        rgb.gp_layout = wlgp_create_argb_buffer(&gp_layout);
-        rgb.popup = wlgp_create_argb_buffer(&popup);
-        draw_line(rgb.popup,100,0,POPUP_WIDTH,50,20,BLACK); //draw layout
-        draw_dpad(rgb.popup,120,5,POPUP_WIDTH,8,3,DIRC_BOTTOM,WHITE);
+	int main(int argc, char *argv[])
+	{
+		///////////////INIT BEGIN/////////////////
+		int timeout_ms = 4;	//default timeout
+		int ret;
+		int max_btn = 8;
+		uint32_t *gamepad_layout, *argb[MAX_BUTTONS];
+		int size, area, stride;
+		bool show_layout = 0, press;
+		struct wlkb_in d = { 0 };
 
-        //draw_area(rgb.gp_layout,WIDTH,HEIGHT,BLACK); //draw gamepad layout
-        draw_rectangular(rgb.gp_layout,width-245,height-160,WIDTH,40,3,WHITE);
-        draw_circle(rgb.gp_layout,width-70,height-140,23,WIDTH,3, WHITE);
-        draw_triangle(rgb.gp_layout,width-170,height-200,WIDTH,50,3,WHITE);
-        draw_x(rgb.gp_layout,width-165,height-40,WIDTH,40,4,WHITE);
-        draw_dpad(rgb.gp_layout,100,height-200,WIDTH,50,10,DIRC_TOP,WHITE);
-        draw_dpad(rgb.gp_layout,100,height-80,WIDTH,50,10,DIRC_BOTTOM,WHITE);
-        draw_dpad(rgb.gp_layout,190,height-170,WIDTH,50,10,DIRC_RIGHT,WHITE);
-        draw_dpad(rgb.gp_layout,60,height-170,WIDTH,50,10,DIRC_LEFT,WHITE);
-        //draw_gplayoutwoffset(rgb.gp_layout,&img,0,0,WIDTH,0x7D);
-//exit(0);
-        render(&popup,DIRC_TOP,&gmpopup);
-        //backup=gp_layout;
-///////////////INIT END///////////////////
-          while(true) { //Main loop begin
+		//BMPImg img;
+		Gamepad gp[MAX_BUTTONS] = {
+		{"[DPAD_UP]",KEY_UP,1,0,0,0,{380,430,50,50,50,0,0,380,430,DIRC_BOTTOMLEFT}},
+		{"[DPAD_DOWN]",KEY_DOWN,1,0,0,0,{380,143,50,50,50,0,0,380,143,DIRC_BOTTOMLEFT}},
+		{"[DPAD_LEFT]",KEY_LEFT,1,0,0,0,{250,270,50,50,50,0,0,250,270,DIRC_BOTTOMLEFT}},
+		{"[DPAD_RIGHT]",KEY_RIGHT,1,0,0,0,{508,270,50,50,50,0,0,508,270,DIRC_BOTTOMLEFT}},
+		{"[BTN_NORTH]",KEY_W,1,0,0,0,{1733,430,50,50,50,0,0,1733,430,DIRC_BOTTOMLEFT}},
+		{"[BTN_SOUTH]",KEY_ENTER,1,0,0,0,{1733,143,50,50,50,0,0,1733,143,DIRC_BOTTOMLEFT}},
+		{"[BTN_EAST]",KEY_Q,1,0,0,0,{1860,270,50,50,50,0,0,1860,270,DIRC_BOTTOMLEFT}},
+		{"[BTN_WEST]",KEY_SPACE,1,0,0,0,{1590,270,50,50,50,0,0,1590,270,DIRC_BOTTOMLEFT}},
+		{"[BTN_L]",KEY_L,1,0,0,0,{380,800,50,50,50,0,0,380,800,DIRC_BOTTOMLEFT}},
+		{"[BTN_R]",KEY_R,1,0,0,0,{1733,800,50,50,50,0,0,1733,800,DIRC_BOTTOMLEFT}},
+		{"[BTN_START]",KEY_ESC,1,0,0,0,{1173,0,50,50,50,0,0,1173,0,DIRC_BOTTOMLEFT}},
+		{"[BTN_SELECT]",KEY_G,1,0,0,0,{973,0,50,50,50,0,0,973,0,DIRC_BOTTOMLEFT}},
+		[SHOW_POPUP].button = "[POPUP]",[SHOW_POPUP].keycode = 0,
+		[SHOW_POPUP].popup = true,[SHOW_POPUP].gm.size = 50,
+		[SHOW_POPUP].gm.touch_length_x = 50,[SHOW_POPUP].gm.touch_length_y=50,
+		[SHOW_POPUP].gm.x = 1073,[SHOW_POPUP].gm.y = 0,
+		[SHOW_POPUP].gm.top=0,[SHOW_POPUP].gm.bottom=0,[SHOW_POPUP].gm.left=1073,[SHOW_POPUP].gm.right=0,
+		[SHOW_POPUP].gm.direction = DIRC_TOPLEFT,[SHOW_POPUP].toggle =1,
+		};
 
-                    int rc = get_event(&d,timeout_ms); //read input events
-                    if(rc == 0) {//code
-                                touchstatus(&d); //report touch status
-                                if(d.mt.pressed){press=1;}else if(d.mt.touch_end){press=0;}
-                                ret=dt_touch_area(&d,970,1050,100,100);
-                                if(d.mt.pressed && ret && !show_layout){render(&gp_layout,DIRC_BOTTOM,&gmlayout);//render(&backup,DIRC_BOTTOMRIGHT,&gmlayoutdpad);
-                                                                       show_layout=1;}
-                                else if(d.mt.pressed && ret && show_layout){wlgp_destroy_surface(&gp_layout);//wlgp_destroy_surface(&backup);
-                                                                       show_layout=0;}
-                                if(show_layout){
-                                                ret=dt_touch_area(&d,445,238,127,366);
-                    if(ret && press){send_event(d.fd,EV_KEY,gp.dpad_up,1);}else{send_event(d.fd,EV_KEY,gp.dpad_up,0);}
-                    ret=dt_touch_area(&d,175,222,366,127);
-                    if(ret && press){send_event(d.fd,EV_KEY,gp.dpad_left,1);}else{send_event(d.fd,EV_KEY,gp.dpad_left,0);}
-                    ret=dt_touch_area(&d,175,222,127,366);
-                    if(ret && press){send_event(d.fd,EV_KEY,gp.dpad_down,1);}else{send_event(d.fd,EV_KEY,gp.dpad_down,0);}
-                    ret=dt_touch_area(&d,175,508,366,127);
-                    if(ret && press){send_event(d.fd,EV_KEY,gp.dpad_right,1);}else{send_event(d.fd,EV_KEY,gp.dpad_right,0);}
-                    ret=dt_touch_area(&d,270,1590,150,150);
-                    if(ret && press){send_event(d.fd,EV_KEY,gp.square,1);}else{send_event(d.fd,EV_KEY,gp.square,0);}
-                    ret=dt_touch_area(&d,143,1733,150,150);
-                    if(ret && press){send_event(d.fd,EV_KEY,gp.x,1);}else{send_event(d.fd,EV_KEY,gp.x,0);}
-                    ret=dt_touch_area(&d,488,1733,150,150);
-                    if(ret && press){send_event(d.fd,EV_KEY,gp.triangle,1);}else{send_event(d.fd,EV_KEY,gp.triangle,0);}
-                    ret=dt_touch_area(&d,270,1860,150,150);
-                    if(ret && press){send_event(d.fd,EV_KEY,gp.circle,1);}else{send_event(d.fd,EV_KEY,gp.circle,0);}
-                    }
+		getdevicename(&d);
+		getoptions(&d, argc, argv);
 
-                    //printf("toggle %d show %d\n",show_layout,ret);
-//                    print_event(&d); //debugging only print events reported by touch status
-                    }
+                max_btn = getconfig(gp, &d);
+		if(!max_btn)
+		{
+			max_btn = MAX_DEFAULT_BUTTONS;
+		}
 
+		init(d.device_name, &d);
+		getdeviceresolution(&d);
+		//BMPImgread(&img,d.img_name);
+		//setlayout(&img,layout_1,250 *250);
+		//imgparse(&img);
 
-                    else if (rc==-1){
-                                    if(!press){
-                                              wlgp_destroy_surface(&gp_layout);//wlgp_destroy_surface(&backup);
-                                              show_layout=0;
-                                              //printf("Exiting.....\n");
-                                              }
-                      //  break; // Exit if no event occur and timeout
-                    }
-}
-///////////////Main loop end//////////////
+		struct wlgp gp_layout = { 0 };
 
+		size = max_size(gp, 0, max_btn);
+		stride = 4 * size;
+		area = stride * size;
+		gp_layout.wl_display = wl_display_connect(NULL);
+		assert(gp_layout.wl_display);
+		if (gp_layout.wl_display == NULL)
+		{
+			fprintf(stderr, "wl_display_connect failed\n");
+			return EXIT_FAILURE;
+		}
 
-//EXIT
-close_fd(&d);
-return 0;
-}
+		getscale(&gp_layout);
+
+		//printf("size choosed %d \n", size);
+
+		if (d.timeout)
+		{
+			timeout_ms = d.timeout;
+		}
+
+		gamepad_layout = wlgp_create_argb_buffer(&gp_layout, area);
+
+		for (int i = 0; i <= MAX_BUTTONS; i++)
+		{
+			argb[i] = malloc(size *size* sizeof(uint32_t));
+		}
+
+		wlgp_draw_scaleable_layout(gp, cur_scale, argb, max_btn, MAX_BUTTONS);
+		wlgp_create_surface(&gp_layout, gp, SHOW_POPUP, MAX_BUTTONS, gamepad_layout, argb);
+
+		///////////////INIT END///////////////////
+		while (true)
+		{
+			//Main loop begin
+			int rc = get_event(&d, timeout_ms);	//read input events
+			if (rc == 0)
+			{
+				//code
+				touchstatus(&d);	//report touch status
+				dt_press(&d, &press);
+				ret = dt_touch_area(&d, 930 - gp[SHOW_POPUP].gm.y, gp[SHOW_POPUP].gm.x, gp[SHOW_POPUP].gm.touch_length_x, gp[SHOW_POPUP].gm.touch_length_y);
+				if (d.mt.pressed && ret && !show_layout)
+				{
+					wlgp_create_surface(&gp_layout, gp, 0, max_btn, gamepad_layout, argb);
+					show_layout = 1;
+				}
+				else if (d.mt.pressed && ret && show_layout)
+				{
+					wlgp_clear_surface(&gp_layout, gp, 0, max_btn);
+					show_layout = 0;
+				}
+
+				if (show_layout)
+				{
+					wlgp_set_keymap(gp, &d, press, 0, max_btn);
+				}
+
+				//                    print_event(&d);	//debugging only print events reported by touch status
+			}
+			else if (rc == -1)
+			{
+				if (!press)
+				{
+					if (show_layout)
+					{
+						wlgp_clear_surface(&gp_layout, gp, 0, max_btn);
+					}
+
+					show_layout = 0;
+				}
+
+				//  break;	// Exit if no event occur and timeout
+			}
+		}
+
+		///////////////Main loop end//////////////
+
+		//EXIT
+		close_fd(&d);
+		return 0;
+	}

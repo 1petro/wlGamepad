@@ -93,7 +93,20 @@ void emit(int fd, uint16_t type, uint16_t code, int val) { struct input_event ie
     ie.value = val; /* timestamp values below are ignored */
     ie.time.tv_sec = 0;
     ie.time.tv_usec = 0;
-    write(fd, &ie, sizeof(ie)); 
+    write(fd, &ie, sizeof(ie));
+}
+
+int dt_press(struct wlkb_in *data,bool *press){
+
+	if(data->mt.pressed)
+	{
+		*press=1;
+	}
+	else if(data->mt.touch_end)
+	{
+		*press=0;
+	}
+ return 0;
 }
 
 int get_event(struct  wlkb_in *data,int timeout) {

@@ -16,7 +16,7 @@
 #include <src/wlgp-gui.h>
 #include "wlr-layer-shell-unstable-v1.h"
 #include "xdg-shell-client-protocol.h"
-
+#include "src/draw.h"
 
 void
 layer_surface_configure(void *data, struct zwlr_layer_surface_v1 *surface, uint32_t serial, uint32_t w, uint32_t h)
@@ -28,6 +28,36 @@ void
 layer_surface_closed(void *data, struct zwlr_layer_surface_v1 *surface)
 {
 }
+
+
+static void
+output_handle_geometry(void *data, struct wl_output *wl_output,
+		       int32_t x, int32_t y,
+		       int32_t physical_width, int32_t physical_height,
+		       int32_t subpixel,
+		       const char *make, const char *model,
+		       int32_t output_transform){}
+static void output_handle_mode(void *data, struct wl_output *wl_output,
+		   uint32_t flags, int32_t width, int32_t height,
+		   int32_t refresh) {}
+static void output_handle_done(void *data, struct wl_output *wl_output) {}
+static void output_handle_a(void *data,struct wl_output *wl_output,const char *s){}
+static void output_handle_b(void *data, struct wl_output *wl_output,const char *s){}
+int cur_scale=0;
+static void output_handle_scale(void *data, struct wl_output *wl_output,
+		    int32_t scale)
+{
+    cur_scale = scale;
+}
+
+static const struct wl_output_listener output_listener = {
+        output_handle_geometry,
+	output_handle_mode,
+	output_handle_done,
+	output_handle_scale,
+        output_handle_a,
+        output_handle_b,
+};
 
 void
 handle_global(void *data, struct wl_registry *registry, uint32_t name, const char *interface, uint32_t version)
@@ -53,18 +83,28 @@ handle_global(void *data, struct wl_registry *registry, uint32_t name, const cha
         }
 }
 
+static void
+global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
+	       const char *interface, uint32_t version) {
+    if (!strcmp(interface, "wl_output")) {
+      struct wl_output *output = output = wl_registry_bind(registry, id,
+                                        &wl_output_interface, version);
+      wl_output_add_listener(output, &output_listener, output);
+    }
+}
+
 void
 handle_global_remove(void *data, struct wl_registry *registry, uint32_t name)
 {
 }
 
 
-/*static*/ uint32_t *wlgp_create_argb_buffer(struct wlgp *app)
+/*static*/ uint32_t *wlgp_create_argb_buffer(struct wlgp *app,int size)
 {
         int shmid = -1;
-        char shm_name[16] = {0};
-        for (uint16_t i = 0; i < UINT16_MAX; ++i) {
-                sprintf(shm_name, "wlgp-%d", i);
+        char shm_name[8] = {0};
+        for (uint8_t i = 0; i < UINT8_MAX; ++i) {
+                sprintf(shm_name, "gp-%d", i);
                 shmid = shm_open(shm_name, O_RDWR | O_CREAT | O_EXCL, 0600);
                 if (shmid > 0) {
                         break;
@@ -77,13 +117,13 @@ handle_global_remove(void *data, struct wl_registry *registry, uint32_t name)
         }
 
         shm_unlink(shm_name);
-        if (ftruncate(shmid, SIZE) < 0) {
+        if (ftruncate(shmid, size) < 0) {
                 close(shmid);
                 fprintf(stderr, "ftruncate failed\n");
                 exit(EXIT_FAILURE);
         }
 
-        void *shm_data = mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shmid, 0);
+        void *shm_data = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, shmid, 0);
         if (shm_data == MAP_FAILED) {
                 fprintf(stderr, "mmap failed\n");
                 exit(EXIT_FAILURE);
@@ -94,13 +134,29 @@ handle_global_remove(void *data, struct wl_registry *registry, uint32_t name)
         return (uint32_t *) shm_data;
 }
 
+int getscale(struct wlgp *app){
+const static struct wl_registry_listener wl_registry_listener = {
+                global_registry_handler,
+                handle_global_remove
+        };
+
+  struct wl_registry *registry = wl_display_get_registry(app->wl_display);
+  wl_registry_add_listener(registry, &wl_registry_listener, NULL);
+  wl_display_dispatch(app->wl_display);
+  wl_display_roundtrip(app->wl_display);
+
+ return 0;
+}
+
 void
-wlgp_create_surface(struct wlgp *app,int anchor,geometry *gm)
+wlgp_create_surface(struct wlgp *app,Gamepad gp[],int begin,int max_surface,uint32_t *argb,uint32_t *adj[])
 {
-        int stride = gm->width * 4;
-        int size = stride * gm->height;
-	const static struct wl_registry_listener wl_registry_listener = {
-		.global = handle_global,
+        int stride;
+        int size;
+        int len;
+
+        const static struct wl_registry_listener wl_registry_listener = {
+ 		.global = handle_global,
 		.global_remove = handle_global_remove,
 	};
 
@@ -109,7 +165,20 @@ wlgp_create_surface(struct wlgp *app,int anchor,geometry *gm)
 		.closed = layer_surface_closed,
 	};
 
-	app->wl_registry = wl_display_get_registry(app->wl_display);
+        for(int i=begin;i<max_surface;i++){
+
+        if(!gp[i].toggle || gp[i].combo_key)
+        {
+	       	continue;
+        }
+
+        len = gp[i].gm.size;
+        stride = len * 4;
+        size = stride * len;
+
+        memcpy(argb,adj[i],len * len * sizeof(uint32_t));
+
+ 	app->wl_registry = wl_display_get_registry(app->wl_display);
 	if (app->wl_registry == NULL) {
 		fprintf(stderr, "wl_display_get_registry failed\n");
 		exit(EXIT_FAILURE);
@@ -128,52 +197,53 @@ wlgp_create_surface(struct wlgp *app,int anchor,geometry *gm)
 		exit(EXIT_FAILURE);
 	}
 
- 	app->wl_buffer = wl_shm_pool_create_buffer(pool, 0, gm->width,gm->height, stride, WL_SHM_FORMAT_ARGB8888);
+ 	app->wl_buffer = wl_shm_pool_create_buffer(pool, 0, len,len,stride, WL_SHM_FORMAT_ARGB8888);
 	wl_shm_pool_destroy(pool);
 	if (app->wl_buffer == NULL) {
 		fprintf(stderr, "wl_shm_pool_create_buffer failed\n");
 		exit(EXIT_FAILURE);
 	}
 
-	app->wl_surface = wl_compositor_create_surface(app->wl_compositor);
-	if (app->wl_surface == NULL) {
+	app->wl_surface[i] = wl_compositor_create_surface(app->wl_compositor);
+	if (app->wl_surface[i] == NULL) {
 		fprintf(stderr, "wl_compositor_create_surface failed\n");
 		exit(EXIT_FAILURE);
 	}
-	app->zwlr_layer_surface = zwlr_layer_shell_v1_get_layer_surface(app->zwlr_layer_shell, app->wl_surface, app->wl_output, ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY, "wlgp");
+	app->zwlr_layer_surface = zwlr_layer_shell_v1_get_layer_surface(app->zwlr_layer_shell, app->wl_surface[i], app->wl_output, ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY, "wlgp");
 	if (app->zwlr_layer_surface == NULL) {
 		fprintf(stderr, "wl_compositor_create_surface failed\n");
 		exit(EXIT_FAILURE);
 	}
 
-	zwlr_layer_surface_v1_set_size(app->zwlr_layer_surface, gm->width, gm->height);
-	zwlr_layer_surface_v1_set_anchor(app->zwlr_layer_surface, anchor);
-        zwlr_layer_surface_v1_set_margin(app->zwlr_layer_surface,gm->top, gm->right, gm->bottom, gm->left);
+	zwlr_layer_surface_v1_set_size(app->zwlr_layer_surface, len, len);
+	zwlr_layer_surface_v1_set_anchor(app->zwlr_layer_surface, gp[i].gm.direction);
+        zwlr_layer_surface_v1_set_margin(app->zwlr_layer_surface,gp[i].gm.top, gp[i].gm.right, gp[i].gm.bottom, gp[i].gm.left);
 	zwlr_layer_surface_v1_add_listener(app->zwlr_layer_surface, &zwlr_layer_surface_listener, app->zwlr_layer_surface);
 
-	wl_surface_commit(app->wl_surface);
+	wl_surface_commit(app->wl_surface[i]);
 	if (wl_display_roundtrip(app->wl_display) == -1) {
 		fprintf(stderr, "wl_display_roundtrip failed\n");
 		exit(EXIT_FAILURE);
 	}
+
+        if(!app->wl_buffer){fprintf(stderr,"a7a\n");}
+
+        wlgp_render(app,gp,i,len);
+        //sleep(1);
+    }
 }
-void wlgp_flush(struct wlgp *app)
+void wlgp_render(struct wlgp *app,Gamepad gp[],int surf_ptr,int len)
 {
-        wl_surface_attach(app->wl_surface, app->wl_buffer, 0, 0);
-        wl_surface_damage(app->wl_surface, 0, 0, WIDTH, HEIGHT);
-        wl_surface_commit(app->wl_surface);
+        wl_surface_attach(app->wl_surface[surf_ptr], app->wl_buffer, 0, 0);
+        wl_surface_damage(app->wl_surface[surf_ptr], 0, 0, len, len);
+        wl_surface_commit(app->wl_surface[surf_ptr]);
         if (wl_display_dispatch(app->wl_display) == -1) {
                 fprintf(stderr, "wl_display_dispatch failed\n");
                 exit(EXIT_FAILURE);
         }
 }
 
-void render(struct wlgp *app,int anchor,geometry *gm){
-        wlgp_create_surface(app,anchor,gm);
-        wlgp_flush(app);
-}
-
-void wlgp_destroy_surface(struct wlgp *app)
+void wlgp_destroy_surface(struct wlgp *app,int surf_ptr)
 {
         if (app->wl_registry == NULL) {
                 return;
@@ -181,7 +251,7 @@ void wlgp_destroy_surface(struct wlgp *app)
 
         zwlr_layer_surface_v1_destroy(app->zwlr_layer_surface);
         zwlr_layer_shell_v1_destroy(app->zwlr_layer_shell);
-        wl_surface_destroy(app->wl_surface);
+        wl_surface_destroy(app->wl_surface[surf_ptr]);
         wl_registry_destroy(app->wl_registry);
         xdg_wm_base_destroy(app->xdg_wm_base);
         wl_buffer_destroy(app->wl_buffer);
@@ -194,7 +264,7 @@ void wlgp_destroy_surface(struct wlgp *app)
         app->wl_output = NULL;
         app->wl_registry = NULL;
         app->wl_shm = NULL;
-        app->wl_surface = NULL;
+        app->wl_surface[surf_ptr] = NULL;
         app->xdg_wm_base = NULL;
         app->zwlr_layer_shell = NULL;
         app->zwlr_layer_surface = NULL;
@@ -205,9 +275,27 @@ void wlgp_destroy_surface(struct wlgp *app)
         }
 }
 
+void wlgp_clear_surface(struct wlgp *app,Gamepad gp[],int begin,int max_surface)
+{
+for(int i=begin;i<max_surface;i++){
+if(!gp[i].toggle || gp[i].combo_key)
+        {
+                continue;
+        }
+
+wl_surface_destroy(app->wl_surface[i]);
+app->wl_surface[i] = NULL;
+if (wl_display_roundtrip(app->wl_display) == -1) {
+                fprintf(stderr, "wl_display_roundtrip failed\n");
+                exit(EXIT_FAILURE);
+        }
+    }
+}
+
+
 void wlgp_destroy(struct wlgp *app)
 {
-        wlgp_destroy_surface(app);
+        //wlgp_destroy_surface(app);
         wl_display_disconnect(app->wl_display);
 }
 
