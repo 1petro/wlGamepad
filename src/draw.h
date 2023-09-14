@@ -15,12 +15,6 @@
 #ifndef FUNCTIONS_H_INCLUDED
 #define FUNCTIONS_H_INCLUDED
 
-
-struct argb {
-    uint32_t *gp_layout;
-    uint32_t *popup;
-};
-
 //draw functions
 void draw_pixel(uint32_t *rgb,int x,int y,int width,int color);
 void draw_line(uint32_t *rgb,int x,int y,int width,int length,int border_w,int color);

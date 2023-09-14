@@ -10,11 +10,14 @@
 #include <string.h>
 #include <src/config.h>
 #include <src/wlgp-input.h>
+#include <src/draw.h>
+
+char *gamepad[MAX_BUTTONS] = { "[DPAD_UP]", "[DPAD_DOWN]", "[DPAD_RIGHT]", "[DPAD_LEFT]", "[BTN_NORTH]", "[BTN_SOUTH]", "[BTN_EAST]", "[BTN_WEST]", "[BTN_L]", "[BTN_R]", "[BTN_START]", "[BTN_SELECT]"};
 
 int getoptions(struct wlkb_in *data,int argc,char *argv[]){
   int f;
   int rc=strncmp(data->device_name,"/dev/input",10);
-  while((f = getopt(argc, argv, "d:c:l:h")) != -1) {
+  while((f = getopt(argc, argv, "d:c:l:t:h")) != -1) {
     switch (f) {
       case 'd':
         fprintf(stderr,"un %s",optarg);
@@ -30,8 +33,11 @@ int getoptions(struct wlkb_in *data,int argc,char *argv[]){
         strncpy(data->img_name,optarg,25);
         strcpy(data->img_name+25,"\0");
         break;
+      case 't':
+        data->timeout = atoi(optarg);
+        break;
       case 'h':
-        printf("\nusage: [options]\npossible options are:\n -h: print this help\n -d: set path to inputdevice\n -c: load gamepad config file\n -l: load layout image for wlgamepad\n\n" );
+        printf("\nusage: [options]\npossible options are:\n -h: print this help\n -d: set path to inputdevice\n -c: load gamepad config file\n -l: load layout image for wlgamepad\n -t: set timeout for show/hide gamepad\n\n" );
         exit(0);
         break;
       case '?':
@@ -42,106 +48,189 @@ int getoptions(struct wlkb_in *data,int argc,char *argv[]){
  return 0;
 }
 
+static int keyparse(char **data, char *button[], Gamepad gp[], int count, int ptr, int key_p)
+{
+        char *rc;
 
-int keyparse(char *data,int st,char *tmp){
-   int i=0;
-   int rc;
-   st += 1;
-    while(1){
-       if(data[i+st] == (char) 0x0a){
-       strncpy(tmp,data+st,i);
-       strcpy(tmp+i,"\0");
-       rc = libevdev_event_code_from_name(EV_KEY,tmp);
-       if(rc==-1){
-       printf("Invalid conf check keycodes names\n");
-       exit(EXIT_FAILURE);}
-       return rc;
-       }
-       else{i++;}
- }
- return 0;
+        if(!button[ptr])
+        {
+                printf("Invalid config data\n");
+                exit(EXIT_FAILURE);
+        }
+
+//      printf("data %s buf  %s count %d\n",data[count],button[ptr],count);
+
+        gp[key_p].custom_key = false;
+
+        if (!strncmp(data[count], "[CUSTOM", 7))
+        {
+                button[DEFAULT_KEYS] = data[count];
+		gp[key_p].custom_key = true;
+        }
+
+        gp[key_p].combo_key = false;
+
+        if (!strncmp(data[count], "[COMBO", 6))
+        {
+		button[DEFAULT_KEYS] = data[count];
+		gp[key_p].combo_key = true;
+        }
+
+        gp[key_p].popup = false;
+
+        if (!strncmp(data[count], "[POPUP", 6))
+        {
+                button[DEFAULT_KEYS] = data[count];
+                key_p = SHOW_POPUP;
+		gp[key_p].popup = true;
+        }
+
+        rc = strstr(button[ptr], data[count]);
+        if (rc)
+        {
+                //printf("keyfound\n");
+
+                gp[key_p].gm.x = atoi(data[count + 3]);
+                gp[key_p].gm.y = atoi(data[count + 4]);
+                strcpy(gp[key_p].button, button[ptr]);
+                gp[key_p].toggle = atoi(data[count + 2]);
+                gp[key_p].gm.size = atoi(data[count + 5]);
+                gp[key_p].gm.touch_length_x = gp[key_p].gm.touch_length_y = gp[key_p].gm.size;
+                gp[key_p].gm.top = 0;
+                gp[key_p].gm.right = 0;
+                gp[key_p].gm.bottom = gp[key_p].gm.y;
+                gp[key_p].gm.left = gp[key_p].gm.x;
+                gp[key_p].gm.direction = DIRC_BOTTOMLEFT;
+
+                //printf("bool %d i %d j %d, k %s\n",gp[SHOW_POPUP].popup,ptr,key_p,data[count+1]);
+
+	        if(!gp[SHOW_POPUP].popup)
+		{
+			gp[key_p].keycode = libevdev_event_code_from_name(EV_KEY, data[count+1]);
+		}
+
+		if(gp[SHOW_POPUP].popup)
+		{
+			gp[key_p].gm.direction = DIRC_TOPLEFT;
+        	        gp[key_p].gm.top = gp[key_p].gm.y;
+                	gp[key_p].gm.left = gp[key_p].gm.x;
+		}
+
+                //printf("button %s x %d y %d toggle %d keycode %d length_x %d length_y %d direction %d right %d left %d bottom %d size %d\n",gp[key_p].button,gp[key_p].gm.x,gp[key_p].gm.y,gp[key_p].toggle,gp[key_p].keycode,gp[key_p].gm.touch_length_x,gp[key_p].gm.touch_length_y,gp[key_p].gm.direction,gp[key_p].gm.right,gp[key_p].gm.left,gp[key_p].gm.bottom,gp[key_p].gm.size);
+
+                if (gp[key_p].keycode == -1)
+                {
+                        printf("Invalid config check keycodes names\n");
+                        exit(EXIT_FAILURE);
+                }
+
+        }
+        else
+        {
+                return 1;
+        }
+
+        return 0;
 }
 
+int getconfig(Gamepad gp[],struct wlkb_in *d)
+{
+        char *data;
+	int max = MAX_BUTTONS;
+        int i = 0, j = 0, k = 0, offset = 0, max_buttons = 0, num_prop = 0, key = 0, rc;
+        char **buf = malloc(MAX_BUF_SIZE* sizeof(unsigned char *));
 
-int getconfig(Gamepad *gp,char *conf_name){
-    int finish=0;
-    int rc,chk=1;
-    char tmp[30];
-    char *gamepad[]={"[DPAD_UP]","[DPAD_DOWN]","[DPAD_RIGHT]","[DPAD_LEFT]","[BTN_NORTH]","[BTN_SOUTH]","[BTN_EAST]","[BTN_WEST]"};
-    int max = sizeof(gamepad)/sizeof(gamepad[0]);
-    FILE *file = fopen(conf_name, "rb");
-    if (file == NULL){
-    fprintf(stderr,"Error opening file %s not found\nFalling back to default configuration\n",conf_name);
-    //exit(EXIT_FAILURE);
-    gp->dpad_up = 103;
-    gp->dpad_down = 108;
-    gp->dpad_right = 106;
-    gp->dpad_left = 105;
-    gp->x = 28;
-    gp->triangle = 31;
-    gp->square = 57;
-    gp->circle = 1;
-    return 1;
-    }
-    fseek(file, 0, SEEK_END);
-    unsigned long fileLen=ftell(file);
-    rewind(file);
-    char *data = malloc(fileLen*sizeof(char));
-    fread(data,1,fileLen,file);
+        for (int i = 0; i <= 100; i++)
+        {
+                buf[i] = malloc(BUTTON_LENGTH* sizeof(unsigned char *));
+        }
 
-   for(int i=0;i<=fileLen-1;i++)
- {
-  if(data[i] == '='){
-  strncpy(tmp,data+finish,i-finish);
-  strcpy(tmp+i-finish,"\0");
+        FILE *file = fopen(d->conf_name, "rb");
+        if (!file)
+        {
+                fprintf(stderr,"Config Not found\nFalling back to default configuration\n");
+                return 0;
+        }
 
-  if(chk == 0){printf("invalid conf file\n");
-  exit(EXIT_FAILURE);}
-  chk=0;
-  for(int j=0;j<max;j++){
-  rc = strcmp(gamepad[j],tmp);
-  if(rc==0){
-       chk=1;
-       switch(j){
-       case 0:
-       gp->dpad_up = keyparse(data,i,tmp);
-       break;
-       }
-       switch(j){
-       case 1:
-       gp->dpad_down = keyparse(data,i,tmp);
-       break;
-       }
-       switch(j){
-       case 2:
-       gp->dpad_right = keyparse(data,i,tmp);
-       break;
-       }
-       switch(j){
-       case 3:
-       gp->dpad_left = keyparse(data,i,tmp);
-       break;
-       }switch(j){
-       case 4:
-       gp->triangle = keyparse(data,i,tmp);
-       break;
-       }switch(j){
-       case 5:
-       gp->x = keyparse(data,i,tmp);
-       break;
-       }switch(j){
-       case 6:
-       gp->circle = keyparse(data,i,tmp);
-       break;
-       }switch(j){
-       case 7:
-       gp->square = keyparse(data,i,tmp);
-       break;
-       }}
-   }
-  }
-  else if(data[i] == (char) 0x0a){finish=i+1;}
- }
- free(data);
- return 0;
+	memset(gp,0x0,max * sizeof(Gamepad));
+
+        fseek(file, 0, SEEK_END);
+        unsigned long fileLen = ftell(file);
+
+        data = malloc(fileLen* sizeof(char));
+        rewind(file);
+
+        fread(data, 1, fileLen, file);
+
+        for (j = offset; j < fileLen; j++)
+        {
+                if (data[j] == 0x20)
+                {
+                        buf[i][k] = '\0';
+                        while (data[j] == 0x20)
+                        {
+                                j++;
+                        }
+
+                        i++;
+                        j--;
+                        k = 0;
+                        offset = j;
+                }
+                else
+                {
+                        if (data[j] == 0x0a)
+                        {
+                                buf[i][k] = '\0';
+                                i++;
+                                j++;
+                                max_buttons++;
+                                k = 0;
+                        }
+
+                        buf[i][k] = data[j];
+                        k++;
+                }
+        }
+
+        num_prop = max_buttons * DEFAULT_PROP;
+        if (num_prop != i)
+        {
+                printf("Invalid config data\n");
+                exit(EXIT_FAILURE);
+        }
+
+        for (i = 0; i < max_buttons; i++)
+        {
+                for (j = 0; j < max_buttons; j++)
+                {
+                        rc = keyparse(buf, gamepad, gp, key, j,i);
+                        if (!rc)
+                        {
+                                break;
+                        }
+                }
+
+                key += DEFAULT_PROP;
+        }
+
+        return max_buttons;;
+}
+
+void adj_scale(Gamepad gp[],int scale,int begin,int end)
+{
+	if(!scale)
+	{
+         	  scale = 1;
+        }
+
+        for (int i = begin; i < end; i++)
+	{
+		gp[i].gm.top /= scale;
+		gp[i].gm.right /= scale;
+                gp[i].gm.bottom /= scale;
+                gp[i].gm.left /= scale;
+		gp[i].gm.touch_length_x += (scale * gp[i].gm.size) ;
+		gp[i].gm.touch_length_y += (scale * gp[i].gm.size);
+	}
 }
