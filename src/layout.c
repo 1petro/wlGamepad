@@ -79,36 +79,43 @@ draw_dpad(argb[i],gp[i].gm.size/7,gp[i].gm.size*3/4,gp[i].gm.size,gp[i].gm.size*
 }
 
 else if(!strcmp(gp[i].button,"[DPAD_DOWN]")){
+draw_area(argb[i],gp[i].gm.size,gp[i].gm.size,0);
 //draw_area(argb[i],gp[i].gm.size,gp[i].gm.size,BLACK);
 draw_dpad(argb[i],gp[i].gm.size/7,gp[i].gm.size/4,gp[i].gm.size,gp[i].gm.size*3/4,10,DIRC_BOTTOM,WHITE);
 }
 
 else if(!strcmp(gp[i].button,"[DPAD_LEFT]")){
+draw_area(argb[i],gp[i].gm.size,gp[i].gm.size,0);
 //draw_area(argb[i],gp[i].gm.size,gp[i].gm.size,BLACK);
 draw_dpad(argb[i],gp[i].gm.size/2,gp[i].gm.size/19,gp[i].gm.size,gp[i].gm.size*3/4,10,DIRC_LEFT,WHITE);
 }
 
 else if(!strcmp(gp[i].button,"[DPAD_RIGHT]")){
+draw_area(argb[i],gp[i].gm.size,gp[i].gm.size,0);
 //draw_area(argb[i],gp[i].gm.size,gp[i].gm.size,BLACK);
 draw_dpad(argb[i],gp[i].gm.size/2.5,gp[i].gm.size/19,gp[i].gm.size,gp[i].gm.size*3/4,10,DIRC_RIGHT,WHITE);
 }
 
 else if(!strcmp(gp[i].button,"[BTN_NORTH]")){
+draw_area(argb[i],gp[i].gm.size,gp[i].gm.size,0);
 //draw_area(argb[i],gp[i].gm.size,gp[i].gm.size,BLACK);
 draw_triangle(argb[i],gp[i].gm.size/10,gp[i].gm.size*3/4,gp[i].gm.size,gp[i].gm.size-(gp[i].gm.size/10)*2,2,WHITE);
 }
 
 else if(!strcmp(gp[i].button,"[BTN_SOUTH]")){
+draw_area(argb[i],gp[i].gm.size,gp[i].gm.size,0);
 ///draw_area(argb[i],gp[i].gm.size,gp[i].gm.size,BLACK);
 draw_x(argb[i],gp[i].gm.size/10,gp[i].gm.size-gp[i].gm.size/10,gp[i].gm.size,gp[i].gm.size-(gp[i].gm.size/10)*2,2,WHITE);
 }
 
 else if(!strcmp(gp[i].button,"[BTN_EAST]")){
+draw_area(argb[i],gp[i].gm.size,gp[i].gm.size,0);
 //draw_area(argb[i],gp[i].gm.size,gp[i].gm.size,BLACK);
 draw_circle(argb[i],gp[i].gm.size/2,gp[i].gm.size/2,gp[i].gm.size/2,gp[i].gm.size,3, WHITE);
 }
 
 else if(!strcmp(gp[i].button,"[BTN_WEST]")){
+draw_area(argb[i],gp[i].gm.size,gp[i].gm.size,0);
 //draw_area(argb[i],gp[i].gm.size,gp[i].gm.size,BLACK);
 draw_rectangular(argb[i],gp[i].gm.size/10,gp[i].gm.size/10,gp[i].gm.size,gp[i].gm.size-(gp[i].gm.size/10)*2,2,WHITE);
 }
