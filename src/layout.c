@@ -19,27 +19,32 @@ return 0;
 }
 
 void wlgp_set_keymap(Gamepad gp[],struct wlkb_in *data,int flag,int begin,int size){
-
-int ret;
+struct td touchdt;
 
     for(int i=begin;i<size;i++){
 
-        ret=dt_touch_area(data,gp[i].gm.y,gp[i].gm.x,gp[i].gm.touch_length_x,gp[i].gm.touch_length_y);
-          if(ret && flag && gp[i].toggle){
+   if(!gp[i].tp){
+
+        touchdt=dt_touch_area(data,gp[i].gm.y,gp[i].gm.x,gp[i].gm.touch_length_x,gp[i].gm.touch_length_y);
+          if(touchdt.prs && flag && gp[i].toggle){
               send_event(data->fd,EV_KEY,gp[i].keycode,1);
 		chk[i]=1;
 
           }else if(!flag){
                 send_event(data->fd,EV_KEY,gp[i].keycode,0);
 
-          }else if(!ret){
+          }else if(!touchdt.prs){
   	        if( (rc = lookup_match_keycode(gp,i))){
  		send_event(data->fd,EV_KEY,gp[i].keycode,0);
 		memset(chk,0,sizeof(chk));
 		}
 	else if(flag && rc){send_event(data->fd,EV_KEY,gp[i].keycode,0);}
 	}
-    }
+     }
+     else{
+	if(gp[i].toggle)
+	dt_touch_pad(data,flag,gp[i].gm.y,gp[i].gm.x,gp[i].gm.touch_length_x,gp[i].gm.touch_length_y);}
+   }
 
 }
 
@@ -149,8 +154,11 @@ draw_area(argb[i],gp[i].gm.size,gp[i].gm.size,WHITE);
 draw_line(argb[i],gp[i].gm.size/10,gp[i].gm.size/2.5,gp[i].gm.size,gp[i].gm.size-(gp[i].gm.size/10)*2,8,BLACK);
 }
 
+else if(!strcmp(gp[i].button,"[TOUCHPAD]")){
+draw_area(argb[i],gp[i].gm.size,gp[i].gm.size,BLACK);
+draw_line(argb[i],50,50,gp[i].gm.size,50,50,WHITE);
 }
-
+}
 adj_scale(gp,cur_scale,0,max_btn);
 adj_scale(gp,cur_scale,SHOW_POPUP,MAX_BUTTONS);
 }
