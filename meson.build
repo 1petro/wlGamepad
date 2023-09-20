@@ -49,7 +49,7 @@ glesv2 = dependency('glesv2')
 inc = include_directories('src/libevdev','src/GL')
 
 executable(
-	'wlgamepad',
+	'wlgp',
 	['src/main.c','src/wlgp-gui.c','src/draw.c','src/wlgp-input.c','src/libevdev/libevdev.c','src/image.c','src/config.c','src/libevdev/libevdev-names.c','src/layout.c','src/GL/egl_common.c'], 
         link_args : ['-lm','-lEGL','-lGLESv2'],
 	include_directories : inc,
