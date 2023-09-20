@@ -123,7 +123,7 @@ static int keyparse(char **data, char *button[], Gamepad gp[], int count, int pt
 		{
 			if(!gp[key_p].tp)
 			{
-				printf("key %d %d\n",key_p,gp[key_p].tp);
+				//printf("key %d %d\n",key_p,gp[key_p].tp);
 				gp[key_p].keycode = libevdev_event_code_from_name(EV_KEY, data[count+1]);
 			}
 		}
@@ -135,7 +135,7 @@ static int keyparse(char **data, char *button[], Gamepad gp[], int count, int pt
                 	gp[key_p].gm.left = gp[key_p].gm.x;
 		}
 
-                printf("button %s x %d y %d toggle %d keycode %d length_x %d length_y %d direction %d right %d left %d bottom %d size %d\n",gp[key_p].button,gp[key_p].gm.x,gp[key_p].gm.y,gp[key_p].toggle,gp[key_p].keycode,gp[key_p].gm.touch_length_x,gp[key_p].gm.touch_length_y,gp[key_p].gm.direction,gp[key_p].gm.right,gp[key_p].gm.left,gp[key_p].gm.bottom,gp[key_p].gm.size);
+                //printf("button %s x %d y %d toggle %d keycode %d length_x %d length_y %d direction %d right %d left %d bottom %d size %d\n",gp[key_p].button,gp[key_p].gm.x,gp[key_p].gm.y,gp[key_p].toggle,gp[key_p].keycode,gp[key_p].gm.touch_length_x,gp[key_p].gm.touch_length_y,gp[key_p].gm.direction,gp[key_p].gm.right,gp[key_p].gm.left,gp[key_p].gm.bottom,gp[key_p].gm.size);
 
                 if (gp[key_p].keycode == -1)
                 {
