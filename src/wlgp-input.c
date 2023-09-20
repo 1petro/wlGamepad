@@ -276,8 +276,8 @@ emit(data->fd, EV_SYN, SYN_REPORT, 0);
 old_x = adj_x;
 old_y = y;
 
-printf("x %d y %d xorg %d yorg %d xslt %d yslt %d t1 %d\n",adj_x,y,data->mt.x[0],data->mt.y[0],t1.x,t1.y,t1.id);
-printf("dt_area %d area 2 %d tpas1 %d tpas2 %d tlx %d tly %d\n",t1.prs,t2.prs,px,py,tlx,tly);
+//printf("x %d y %d xorg %d yorg %d xslt %d yslt %d t1 %d\n",adj_x,y,data->mt.x[0],data->mt.y[0],t1.x,t1.y,t1.id);
+//printf("dt_area %d area 2 %d tpas1 %d tpas2 %d tlx %d tly %d\n",t1.prs,t2.prs,px,py,tlx,tly);
 
 }
 
