@@ -24,27 +24,27 @@
 	{
 		///////////////INIT BEGIN/////////////////
 		int timeout_ms = 4;	//default timeout
-		int ret;
 		int max_btn = 8;
 		uint32_t *gamepad_layout, *argb[MAX_BUTTONS];
 		int size, area, stride;
 		bool show_layout = 0, press;
 		struct wlkb_in d = { 0 };
+		struct td dt;
 
 		//BMPImg img;
 		Gamepad gp[MAX_BUTTONS] = {
-		{"[DPAD_UP]",KEY_UP,1,0,0,0,{380,430,50,50,50,0,0,380,430,DIRC_BOTTOMLEFT}},
-		{"[DPAD_DOWN]",KEY_DOWN,1,0,0,0,{380,143,50,50,50,0,0,380,143,DIRC_BOTTOMLEFT}},
-		{"[DPAD_LEFT]",KEY_LEFT,1,0,0,0,{250,270,50,50,50,0,0,250,270,DIRC_BOTTOMLEFT}},
-		{"[DPAD_RIGHT]",KEY_RIGHT,1,0,0,0,{508,270,50,50,50,0,0,508,270,DIRC_BOTTOMLEFT}},
-		{"[BTN_NORTH]",KEY_W,1,0,0,0,{1733,430,50,50,50,0,0,1733,430,DIRC_BOTTOMLEFT}},
-		{"[BTN_SOUTH]",KEY_ENTER,1,0,0,0,{1733,143,50,50,50,0,0,1733,143,DIRC_BOTTOMLEFT}},
-		{"[BTN_EAST]",KEY_Q,1,0,0,0,{1860,270,50,50,50,0,0,1860,270,DIRC_BOTTOMLEFT}},
-		{"[BTN_WEST]",KEY_SPACE,1,0,0,0,{1590,270,50,50,50,0,0,1590,270,DIRC_BOTTOMLEFT}},
-		{"[BTN_L]",KEY_L,1,0,0,0,{380,800,50,50,50,0,0,380,800,DIRC_BOTTOMLEFT}},
-		{"[BTN_R]",KEY_R,1,0,0,0,{1733,800,50,50,50,0,0,1733,800,DIRC_BOTTOMLEFT}},
-		{"[BTN_START]",KEY_ESC,1,0,0,0,{1173,0,50,50,50,0,0,1173,0,DIRC_BOTTOMLEFT}},
-		{"[BTN_SELECT]",KEY_G,1,0,0,0,{973,0,50,50,50,0,0,973,0,DIRC_BOTTOMLEFT}},
+		{"[DPAD_UP]",KEY_UP,1,0,0,0,0,{380,430,50,50,50,0,0,380,430,DIRC_BOTTOMLEFT}},
+		{"[DPAD_DOWN]",KEY_DOWN,1,0,0,0,0,{380,143,50,50,50,0,0,380,143,DIRC_BOTTOMLEFT}},
+		{"[DPAD_LEFT]",KEY_LEFT,1,0,0,0,0,{250,270,50,50,50,0,0,250,270,DIRC_BOTTOMLEFT}},
+		{"[DPAD_RIGHT]",KEY_RIGHT,1,0,0,0,0,{508,270,50,50,50,0,0,508,270,DIRC_BOTTOMLEFT}},
+		{"[BTN_NORTH]",KEY_W,1,0,0,0,0,{1733,430,50,50,50,0,0,1733,430,DIRC_BOTTOMLEFT}},
+		{"[BTN_SOUTH]",KEY_ENTER,1,0,0,0,0,{1733,143,50,50,50,0,0,1733,143,DIRC_BOTTOMLEFT}},
+		{"[BTN_EAST]",KEY_Q,1,0,0,0,0,{1860,270,50,50,50,0,0,1860,270,DIRC_BOTTOMLEFT}},
+		{"[BTN_WEST]",KEY_SPACE,1,0,0,0,0,{1590,270,50,50,50,0,0,1590,270,DIRC_BOTTOMLEFT}},
+		{"[BTN_L]",KEY_L,1,0,0,0,0,{380,800,50,50,50,0,0,380,800,DIRC_BOTTOMLEFT}},
+		{"[BTN_R]",KEY_R,1,0,0,0,0,{1733,800,50,50,50,0,0,1733,800,DIRC_BOTTOMLEFT}},
+		{"[BTN_START]",KEY_ESC,1,0,0,0,0,{1173,0,50,50,50,0,0,1173,0,DIRC_BOTTOMLEFT}},
+		{"[BTN_SELECT]",KEY_G,1,0,0,0,0,{973,0,50,50,50,0,0,973,0,DIRC_BOTTOMLEFT}},
 		[SHOW_POPUP].button = "[POPUP]",[SHOW_POPUP].keycode = 0,
 		[SHOW_POPUP].popup = true,[SHOW_POPUP].gm.size = 50,
 		[SHOW_POPUP].gm.touch_length_x = 50,[SHOW_POPUP].gm.touch_length_y=50,
@@ -61,7 +61,7 @@
 		{
 			max_btn = MAX_DEFAULT_BUTTONS;
 		}
-
+		//strcpy(d.device_name,"/dev/input/event2");
 		init(d.device_name, &d);
 		getdeviceresolution(&d);
 		//BMPImgread(&img,d.img_name);
@@ -110,13 +110,13 @@
 				//code
 				touchstatus(&d);	//report touch status
 				dt_press(&d, &press);
-				ret = dt_touch_area(&d, 930 - gp[SHOW_POPUP].gm.y, gp[SHOW_POPUP].gm.x, gp[SHOW_POPUP].gm.touch_length_x, gp[SHOW_POPUP].gm.touch_length_y);
-				if (d.mt.pressed && ret && !show_layout)
+				dt = dt_touch_area(&d, d.abs_x.maximum - gp[SHOW_POPUP].gm.size - gp[SHOW_POPUP].gm.y, gp[SHOW_POPUP].gm.x, gp[SHOW_POPUP].gm.touch_length_x, gp[SHOW_POPUP].gm.touch_length_y);
+				if (d.mt.pressed && dt.prs && !show_layout)
 				{
 					wlgp_create_surface(&gp_layout, gp, 0, max_btn, gamepad_layout, argb);
 					show_layout = 1;
 				}
-				else if (d.mt.pressed && ret && show_layout)
+				else if (d.mt.pressed && dt.prs && show_layout)
 				{
 					wlgp_clear_surface(&gp_layout, gp, 0, max_btn);
 					show_layout = 0;

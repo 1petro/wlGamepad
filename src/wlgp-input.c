@@ -16,6 +16,7 @@
 
 void init(char *device,struct wlkb_in *data){
     int rc=1;
+    struct uinput_abs_setup  abse_x,abse_y;
     data->fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
 
     //ioctls
@@ -33,17 +34,40 @@ void init(char *device,struct wlkb_in *data){
     for(key = 0; key < 11; key++)
     ioctl(data->fd, UI_SET_KEYBIT, keys[2][key]);
 
-    memset(&data->usetup, 0, sizeof(data->usetup)); 
+        abse_x.code = ABS_X;
+        abse_x.absinfo.minimum = 0;
+        abse_x.absinfo.maximum = 255;
+        abse_x.absinfo.value = 128;
+        abse_x.absinfo.resolution = 0;
+        abse_x.absinfo.fuzz=0;
+        abse_x.absinfo.flat = 15;
+        abse_y.code = ABS_Y;
+        abse_y.absinfo.minimum = 0;
+        abse_y.absinfo.maximum = 255;
+        abse_y.absinfo.value = 128;
+        abse_y.absinfo.resolution = 0;
+        abse_y.absinfo.flat = 15;
+        abse_y.absinfo.fuzz=0;
+        ioctl(data->fd, UI_ABS_SETUP, abse_x);
+        ioctl(data->fd, UI_ABS_SETUP, abse_y);
+        ioctl(data->fd, UI_SET_EVBIT, EV_KEY); // enable button/key handling
+        ioctl(data->fd, UI_SET_KEYBIT, BTN_A);
+        ioctl(data->fd, UI_SET_KEYBIT, BTN_B);
+        ioctl(data->fd, UI_SET_KEYBIT, BTN_X);
+        ioctl(data->fd, UI_SET_KEYBIT, BTN_Y);
+        ioctl(data->fd, UI_SET_EVBIT, EV_ABS);
+        ioctl(data->fd, UI_SET_ABSBIT, ABS_X);
+        ioctl(data->fd, UI_SET_ABSBIT, ABS_Y);
+
+    memset(&data->usetup, 0, sizeof(data->usetup));
     data->usetup.id.bustype = BUS_USB;
-    data->usetup.id.vendor = 0x1234; 
+    data->usetup.id.vendor = 0x1234;
     /* sample vendor */
-    data->usetup.id.product = 0x5678; 
+    data->usetup.id.product = 0x5678;
     /* sample product */
-    strcpy(data->usetup.name, "wlGamepad"); 
+    strcpy(data->usetup.name, "wlGamepad");
     ioctl(data->fd, UI_DEV_SETUP, &data->usetup);
     ioctl(data->fd, UI_DEV_CREATE);
-    sleep(1);
-
 
     data->fds[0].fd = open(device, O_RDONLY | O_NONBLOCK);
     rc = libevdev_new_from_fd(data->fds[0].fd, &data->dev);
@@ -154,15 +178,111 @@ void touchstatus(struct wlkb_in *data){
      }
 }
 
-int dt_touch_area(struct wlkb_in *data,int x,int y,int length_x,int length_y){
+int ts=0;
+
+struct td dt_touch_area(struct wlkb_in *data,int x,int y,int length_x,int length_y){
+    struct td touchdata;
+        int i;
     int border_x = x+length_x;
     int border_y = y+length_y;
-    for(int i=0;i<=data->mt.numTouches;i++){
-       if(data->mt.x[i]<=border_x && data->mt.x[i]>=x
-          && data->mt.y[i]<=border_y && data->mt.y[i]>=y && data->mt.id[i] != -1){return 1;}
 
-       }
-  return 0;
+    //if(touchdata.id>10){touchdata.id=0;}
+    for(i=0;i<=data->mt.numTouches;i++){
+       if(data->mt.x[i]<=border_x && data->mt.x[i]>=x
+          && data->mt.y[i]<=border_y && data->mt.y[i]>=y && data->mt.id[i] != -1)
+        {
+        touchdata.x = data->mt.x[i];
+        touchdata.y = data->mt.y[i];
+        touchdata.prs = 1;
+        if(data->tp_on){
+	ts = i;
+	touchdata.id = data->mt.id[i];
+	}
+        return touchdata;
+        }//else{touchdata.id = libevdev_get_current_slot(data->dev);}y
+}
+
+  touchdata.x = data->mt.x[ts];
+  touchdata.y = data->mt.y[ts];
+  touchdata.id = data->mt.id[ts];
+  touchdata.prs = 0;
+  return touchdata;
+}
+
+bool tp=false;
+
+void dt_touch_pad(struct wlkb_in *data,int press,int px,int py,int tlx,int tly){
+int old_x=0,old_y=0;
+/*slot_x=data->mt.x[0],slot_y=data->mt.y[0],sl_x=128,sl_y=128;*/
+int x,y,adj_x;
+
+struct td t1,t2;
+data->tp_on=true;
+t1 = dt_touch_area(data,px,py,tlx,tly);
+data->tp_on=false;
+t2 = dt_touch_area(data,px+100,py+100,tlx-200,tly-200);
+
+if(!press || t1.id == -1){
+x=128;y=128;
+tp=false;
+emit(data->fd, EV_ABS, ABS_X, x);
+//emit(data->fd, EV_SYN, SYN_REPORT, 0);
+emit(data->fd, EV_ABS, ABS_Y, y);
+emit(data->fd, EV_SYN, SYN_REPORT, 0);
+}
+
+if(press && t2.prs){
+tp=true;
+}
+
+//if(t1.id == -1){tp=false;}
+
+if(tp){
+
+
+if(t2.prs){x=128;y=128;}
+/*else{x= (data->mt.x[0]/4);
+     y= (data->mt.y[0]/4);}*/
+else if(!t2.prs){
+
+if(t1.x < px +100) {x = (t1.x * 1.28 ) - (px * 1.28);}
+else if(t1.x > px+200 ){x = (t1.x * 1.28) - (px+100)*1.28;}
+
+if(t1.y < py+100) {y = (t1.y * 1.28) - (py * 1.28);}
+else if(t1.y > py+200){y = (t1.y * 1.28) - (py+100)*1.28;}
+}
+
+if((t1.x<px+200 && t1.x>px+100)){x=128;}
+if((t1.y<py+200 && t1.y>py+100)){y=128;}
+
+if(t1.x > px+tlx){x=255;}
+else if(t1.x < px){x=0;}
+if(t1.y > py+tly){y=255;}
+else if(t1.y < py){y=0;}
+
+adj_x = 255 - x;
+
+//if(y!=old_y){
+emit(data->fd, EV_ABS, ABS_X, y);
+if(y!=old_y){
+emit(data->fd, EV_SYN, SYN_REPORT, 0);
+}
+//if(adj_x!=old_x){
+emit(data->fd, EV_ABS, ABS_Y, adj_x);
+if(adj_x!=old_x){
+emit(data->fd, EV_SYN, SYN_REPORT, 0);
+}
+
+old_x = adj_x;
+old_y = y;
+
+printf("x %d y %d xorg %d yorg %d xslt %d yslt %d t1 %d\n",adj_x,y,data->mt.x[0],data->mt.y[0],t1.x,t1.y,t1.id);
+printf("dt_area %d area 2 %d tpas1 %d tpas2 %d tlx %d tly %d\n",t1.prs,t2.prs,px,py,tlx,tly);
+
+}
+
+//else if(!press){emit(data->fd, EV_SYN, SYN_REPORT, 0);}
+
 }
 
 int
@@ -182,7 +302,7 @@ print_event(struct wlkb_in *data)
                         data->ev.code,
                         libevdev_event_code_get_name(data->ev.type,data->ev.code),
                         data->ev.value);
-                printf("OLD X %d NEW X %d OLDY %d NEWY %d OLDID %d NEWID %d newerid %d TOUCH %d END%d  AREA %d AREA2%d\n",data->mt.x[0],data->mt.x[1],data->mt.y[0],data->mt.y[1],data->mt.id[0],data->mt.id[1],data->mt.id[2],data->mt.numTouches,data->mt.touch_end,dt_touch_area(data,200,200,100,100),dt_touch_area(data,970,1050,100,100));
+//                printf("OLD X %d NEW X %d OLDY %d NEWY %d OLDID %d NEWID %d newerid %d TOUCH %d END%d  AREA %d AREA2%d\n",data->mt.x[0],data->mt.x[1],data->mt.y[0],data->mt.y[1],data->mt.id[0],data->mt.id[1],data->mt.id[2],data->mt.numTouches,data->mt.touch_end,dt_touch_area(data,200,200,100,100,&slot_x,&slot_y),dt_touch_area(data,970,1050,100,100,&slot_x,&slot_y));
        }
         return 0;
 }

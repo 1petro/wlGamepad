@@ -33,7 +33,7 @@ typedef struct {
  char button[MAX_BTN_NAME];
  int keycode;
  bool toggle;
- bool combo_key,custom_key,popup;
+ bool combo_key,custom_key,popup,tp;
  struct geometry gm;
 }Gamepad;
 
@@ -44,7 +44,7 @@ struct wlgp {
         struct wl_output *wl_output;
         struct wl_registry *wl_registry;
         struct wl_shm *wl_shm;
-        struct wl_surface *wl_surface[30];
+        struct wl_surface *wl_surface[MAX_BUTTONS];
         struct xdg_wm_base *xdg_wm_base;
         struct zwlr_layer_shell_v1 *zwlr_layer_shell;
         struct zwlr_layer_surface_v1 *zwlr_layer_surface;

@@ -1,6 +1,7 @@
 #ifndef MY_HEADER_FILE_H
 #define MY_HEADER_FILE_H
 #define START 1
+#define TOUCH_Y_OFFSET 75
 #define STOP 0
 
 #include <stdio.h>
@@ -28,6 +29,12 @@ struct mt_status {
     int touch_end;
 };
 
+struct td {
+int x;
+int y;
+int id;
+int prs;
+};
 
 struct wlkb_in {
     struct pollfd fds[1];
@@ -37,8 +44,9 @@ struct wlkb_in {
     struct libevdev *dev;
     struct mt_status mt;
     fd_set rfds;
-    int fd;
+    int fd,tp_fd;
     int timeout;
+    bool tp_on;
     char device_name[25],conf_name[25],img_name[25];
 };
 
@@ -50,10 +58,10 @@ void getdevicename(struct wlkb_in *data);
 void getdeviceresolution(struct  wlkb_in *data);
 int get_event(struct  wlkb_in *data,int timeout);
 void touchstatus(struct wlkb_in *data);
-int dt_touch_area(struct wlkb_in *data,int x,int y,int length_x,int length_y);
+struct td dt_touch_area(struct wlkb_in *data,int x,int y,int length_x,int length_y);
+void dt_touch_pad(struct wlkb_in *data,int press,int x,int y,int tlx,int tly);
 void emit(int fd, uint16_t type, uint16_t code, int val);
 int syn(struct wlkb_in *data);
-int reinit_fd(int *fd);
 void send_event(int fd, uint16_t type, uint16_t code,int val);
 void close_fd(struct wlkb_in *data);
 #endif

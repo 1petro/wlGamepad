@@ -17,7 +17,7 @@ char *gamepad[MAX_BUTTONS] = { "[DPAD_UP]", "[DPAD_DOWN]", "[DPAD_RIGHT]", "[DPA
 int getoptions(struct wlkb_in *data,int argc,char *argv[]){
   int f;
   int rc=strncmp(data->device_name,"/dev/input",10);
-  while((f = getopt(argc, argv, "d:c:l:t:h")) != -1) {
+  while((f = getopt(argc, argv, "d:c:l:t:vh")) != -1) {
     switch (f) {
       case 'd':
         fprintf(stderr,"un %s",optarg);
@@ -36,8 +36,15 @@ int getoptions(struct wlkb_in *data,int argc,char *argv[]){
       case 't':
         data->timeout = atoi(optarg);
         break;
+      case 'v':
+        printf("wlGamepad version 0.1_alpha\n");
+        exit(0);
+        break;
+      case ':':
+        printf("option needs a value\n");
+        break;
       case 'h':
-        printf("\nusage: [options]\npossible options are:\n -h: print this help\n -d: set path to inputdevice\n -c: load gamepad config file\n -l: load layout image for wlgamepad\n -t: set timeout for show/hide gamepad\n\n" );
+        printf("\nusage: [options]\npossible options are:\n -h: print this help\n -d: set path to inputdevice\n -c: load gamepad config file\n -l: load layout image for wlgamepad\n -t: set timeout for show/hide gamepad\n -v: show wlgp version\n\n" );
         exit(0);
         break;
       case '?':
@@ -85,6 +92,14 @@ static int keyparse(char **data, char *button[], Gamepad gp[], int count, int pt
 		gp[key_p].popup = true;
         }
 
+	gp[key_p].tp = false;
+	if (!strcmp(data[count], "[TOUCHPAD]"))
+        {
+                button[DEFAULT_KEYS] = data[count];
+		gp[key_p].tp = true;
+		//printf("touchpad %d\n",key_p);
+        }
+
         rc = strstr(button[ptr], data[count]);
         if (rc)
         {
@@ -104,19 +119,23 @@ static int keyparse(char **data, char *button[], Gamepad gp[], int count, int pt
 
                 //printf("bool %d i %d j %d, k %s\n",gp[SHOW_POPUP].popup,ptr,key_p,data[count+1]);
 
-	        if(!gp[SHOW_POPUP].popup)
+	        if(!gp[key_p].popup)
 		{
-			gp[key_p].keycode = libevdev_event_code_from_name(EV_KEY, data[count+1]);
+			if(!gp[key_p].tp)
+			{
+				printf("key %d %d\n",key_p,gp[key_p].tp);
+				gp[key_p].keycode = libevdev_event_code_from_name(EV_KEY, data[count+1]);
+			}
 		}
 
-		if(gp[SHOW_POPUP].popup)
+		if(gp[key_p].popup)
 		{
 			gp[key_p].gm.direction = DIRC_TOPLEFT;
         	        gp[key_p].gm.top = gp[key_p].gm.y;
                 	gp[key_p].gm.left = gp[key_p].gm.x;
 		}
 
-                //printf("button %s x %d y %d toggle %d keycode %d length_x %d length_y %d direction %d right %d left %d bottom %d size %d\n",gp[key_p].button,gp[key_p].gm.x,gp[key_p].gm.y,gp[key_p].toggle,gp[key_p].keycode,gp[key_p].gm.touch_length_x,gp[key_p].gm.touch_length_y,gp[key_p].gm.direction,gp[key_p].gm.right,gp[key_p].gm.left,gp[key_p].gm.bottom,gp[key_p].gm.size);
+                printf("button %s x %d y %d toggle %d keycode %d length_x %d length_y %d direction %d right %d left %d bottom %d size %d\n",gp[key_p].button,gp[key_p].gm.x,gp[key_p].gm.y,gp[key_p].toggle,gp[key_p].keycode,gp[key_p].gm.touch_length_x,gp[key_p].gm.touch_length_y,gp[key_p].gm.direction,gp[key_p].gm.right,gp[key_p].gm.left,gp[key_p].gm.bottom,gp[key_p].gm.size);
 
                 if (gp[key_p].keycode == -1)
                 {
@@ -230,7 +249,8 @@ void adj_scale(Gamepad gp[],int scale,int begin,int end)
 		gp[i].gm.right /= scale;
                 gp[i].gm.bottom /= scale;
                 gp[i].gm.left /= scale;
-		gp[i].gm.touch_length_x += (scale * gp[i].gm.size) ;
-		gp[i].gm.touch_length_y += (scale * gp[i].gm.size);
+		gp[i].gm.touch_length_x = (scale * gp[i].gm.size) ;
+		gp[i].gm.touch_length_y = (scale * gp[i].gm.size);
+		gp[i].gm.y += TOUCH_Y_OFFSET;
 	}
 }
