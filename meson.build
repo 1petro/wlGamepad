@@ -45,7 +45,7 @@ wlr_layer_shell_unstable_v1 = declare_dependency(link_with: wlr_layer_shell_unst
 inc = include_directories('src/libevdev')
 
 executable(
-	'wlgamepad',
+	'wlgp',
 	['src/main.c','src/wlgp-gui.c','src/draw.c','src/wlgp-input.c','src/libevdev/libevdev.c','src/image.c','src/config.c','src/libevdev/libevdev-names.c','src/layout.c'], 
         link_args : '-lm',
 	include_directories : inc,
