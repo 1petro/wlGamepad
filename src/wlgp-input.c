@@ -13,6 +13,17 @@
 #include <linux/uinput.h>
 #include <src/wlgp-input.h>
 #include <dirent.h>
+#include <limits.h>
+#include <glob.h>
+
+#ifndef  ULONG_BITS
+#define  ULONG_BITS   (CHAR_BIT * sizeof (unsigned long))
+#endif
+
+static inline int  has_bit(const unsigned long  data[], const size_t  bit)
+{
+    return !!(data[bit / ULONG_BITS] & (1uL << (bit % ULONG_BITS)));
+}
 
 void init(char *device,struct wlkb_in *data){
     int rc=1;
@@ -82,8 +93,11 @@ void init(char *device,struct wlkb_in *data){
     }
 }
 
-void getdevicename(struct wlkb_in *data){
+char *getdevicename(){
     int fdinput,key;
+    glob_t  files;
+    int     result;
+    char buf[30] = "/dev/input/",*dev_name;
     DIR *inputdevs = opendir("/dev/input");
     struct dirent *dptr;
     fdinput = -1;
@@ -96,11 +110,51 @@ void getdevicename(struct wlkb_in *data){
       }
     }
     if(fdinput == -1) {
-      fprintf(stderr, "no touch device found in /dev/input\n");
-      exit(-1);
+      fprintf(stderr, "no touch device found in /dev/input trying method 2\n");
+    }else{
+    dev_name = dptr->d_name;
+    strcat(buf,dev_name);
+    strcpy(dev_name,buf);
+    return dev_name;
     }
-   strcpy(data->device_name,"/dev/input/");
-   strcat(data->device_name,dptr->d_name);
+
+
+    result = glob("/dev/input/event*", 0, NULL, &files);
+    if (result) {
+        if (result == GLOB_NOSPACE) {
+            errno = ENOMEM;
+            return NULL;
+        } else
+    if (result == GLOB_NOMATCH) {
+            errno = ENOENT;
+            return NULL;
+        } else {
+            errno = EACCES;
+            return NULL;
+        }
+    }
+
+    for (size_t  i = 0;  i < files.gl_pathc;  i++) {
+        int  fd = open(files.gl_pathv[i], O_RDONLY);
+        if (fd != -1) {
+            unsigned long  absbits[1 + ABS_MAX / ULONG_BITS] = { 0 };
+            unsigned long  keybits[1 + KEY_MAX / ULONG_BITS] = { 0 };
+            if (ioctl(fd, EVIOCGBIT(EV_ABS, ABS_MAX+1), &absbits) != -1 &&
+                ioctl(fd, EVIOCGBIT(EV_KEY, KEY_MAX+1), &keybits) != -1) {
+                if (has_bit(absbits, ABS_X) ||
+                    has_bit(absbits, ABS_Y) ||
+                    has_bit(keybits, BTN_TOUCH)) {
+	char *devpath = strdup(files.gl_pathv[i]);
+	if(devpath){return devpath;}
+	}
+            }
+            close(fd);
+        }
+    }
+   globfree(&files);
+
+    errno = ENOENT;
+    return NULL;
  }
 
 

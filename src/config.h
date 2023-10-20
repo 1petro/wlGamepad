@@ -20,7 +20,7 @@
 #define MAX_DEFAULT_BUTTONS 12
 
 //int keyparse(char **data,char *button[],Gamepad *gp,int count,int ptr);
-int getconfig(Gamepad gp[],struct wlkb_in *d);
+int getconfig(Gamepad gp[],char *config_name);
 void adj_scale(Gamepad gp[],int scale,int begin,int end);
-int getoptions(struct wlkb_in *data,int argc,char *argv[]);
+//int getoptions(struct wlkb_in *data,int argc,char *argv[]);
 #endif

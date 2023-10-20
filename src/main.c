@@ -1,3 +1,8 @@
+#define _POSIX_C_SOURCE 200809L
+#ifndef DEBUG
+#define NDEBUG
+#endif
+
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -30,6 +35,7 @@
 		bool show_layout = 0, press;
 		struct wlkb_in d = { 0 };
 		struct td dt;
+		char *input_device=NULL,*config_name=NULL;
 
 		//BMPImg img;
 		Gamepad gp[MAX_BUTTONS] = {
@@ -53,16 +59,65 @@
 		[SHOW_POPUP].gm.direction = DIRC_TOPLEFT,[SHOW_POPUP].toggle =1,
 		};
 
-		getdevicename(&d);
-		getoptions(&d, argc, argv);
 
-                max_btn = getconfig(gp, &d);
+		 int f;
+		  while((f = getopt(argc, argv, "d:c:l:t:vh")) != -1) {
+		    switch (f) {
+		      case 'd':
+		        input_device = optarg;
+		        break;
+		      case 'c':
+		        config_name = optarg;
+		        break;
+		      case 'l':
+		        strncpy(d.img_name,optarg,25);
+		        strcpy(d.img_name,"\0");
+		        break;
+		      case 't':
+		        d.timeout = atoi(optarg);
+		        break;
+		      case 'v':
+		        printf("wlGamepad version 0.1_alpha\n");
+		        exit(0);
+		        break;
+		      case ':':
+		        printf("option needs a value\n");
+		        break;
+		      case 'h':
+		        printf("\nusage: [options]\npossible options are:\n -h: print this help\n -d: set path to inputdevice\n -c: load gamepad config file\n -l: load layout image for wlgamepad\n -t: set timeout for show/hide gamepad\n -v: show wlgp version\n\n" );
+		        exit(0);
+		        break;
+		      case '?':
+		        fprintf(stderr, "unrecognized option -%c\n", optopt);
+		        break;
+		    }
+		  }
+
+		if(!input_device)
+		{
+			input_device = getenv("INPUT_DEVICE");
+
+			if(!input_device){
+			input_device = getdevicename();
+			fprintf(stderr,"device %s\n",input_device);
+			}else
+				if(!input_device){
+				fprintf(stderr,"No input device found method 2 exiting....");
+				exit(-1);
+			}
+		}
+
+		if(!config_name)
+		{
+			config_name = getenv("CONFIG_PATH");
+		}
+
+                max_btn = getconfig(gp,config_name);
 		if(!max_btn)
 		{
 			max_btn = MAX_DEFAULT_BUTTONS;
 		}
-		//strcpy(d.device_name,"/dev/input/event2");
-		init(d.device_name, &d);
+		init(input_device, &d);
 		getdeviceresolution(&d);
 		//BMPImgread(&img,d.img_name);
 		//setlayout(&img,layout_1,250 *250);

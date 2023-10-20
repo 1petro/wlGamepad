@@ -54,7 +54,7 @@ int print_event(struct wlkb_in *data);
 int check_ev(struct input_event *ie, uint16_t type, uint16_t code, int val);
 void init(char *device,struct wlkb_in *data);
 int dt_press(struct wlkb_in *data,bool *press);
-void getdevicename(struct wlkb_in *data);
+char *getdevicename();
 void getdeviceresolution(struct  wlkb_in *data);
 int get_event(struct  wlkb_in *data,int timeout);
 void touchstatus(struct wlkb_in *data);

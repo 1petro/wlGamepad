@@ -14,47 +14,6 @@
 
 char *gamepad[MAX_BUTTONS] = { "[DPAD_UP]", "[DPAD_DOWN]", "[DPAD_RIGHT]", "[DPAD_LEFT]", "[BTN_NORTH]", "[BTN_SOUTH]", "[BTN_EAST]", "[BTN_WEST]", "[BTN_L]", "[BTN_R]", "[BTN_START]", "[BTN_SELECT]"};
 
-int getoptions(struct wlkb_in *data,int argc,char *argv[]){
-  int f;
-  int rc=strncmp(data->device_name,"/dev/input",10);
-  while((f = getopt(argc, argv, "d:c:l:t:vh")) != -1) {
-    switch (f) {
-      case 'd':
-        fprintf(stderr,"un %s",optarg);
-        if(rc==0){break;}else{
-        strncpy(data->device_name,optarg,25);
-        strcpy(data->device_name+25,"\0");}
-        break;
-      case 'c':
-        strncpy(data->conf_name,optarg,25);
-        strcpy(data->conf_name+25,"\0");
-        break;
-      case 'l':
-        strncpy(data->img_name,optarg,25);
-        strcpy(data->img_name+25,"\0");
-        break;
-      case 't':
-        data->timeout = atoi(optarg);
-        break;
-      case 'v':
-        printf("wlGamepad version 0.1_alpha\n");
-        exit(0);
-        break;
-      case ':':
-        printf("option needs a value\n");
-        break;
-      case 'h':
-        printf("\nusage: [options]\npossible options are:\n -h: print this help\n -d: set path to inputdevice\n -c: load gamepad config file\n -l: load layout image for wlgamepad\n -t: set timeout for show/hide gamepad\n -v: show wlgp version\n\n" );
-        exit(0);
-        break;
-      case '?':
-        fprintf(stderr, "unrecognized option -%c\n", optopt);
-        break;
-    }
-  }
- return 0;
-}
-
 static int keyparse(char **data, char *button[], Gamepad gp[], int count, int ptr, int key_p)
 {
         char *rc;
@@ -152,19 +111,19 @@ static int keyparse(char **data, char *button[], Gamepad gp[], int count, int pt
         return 0;
 }
 
-int getconfig(Gamepad gp[],struct wlkb_in *d)
+int getconfig(Gamepad gp[],char *config_name)
 {
         char *data;
 	int max = MAX_BUTTONS;
         int i = 0, j = 0, k = 0, offset = 0, max_buttons = 0, num_prop = 0, key = 0, rc;
         char **buf = malloc(MAX_BUF_SIZE* sizeof(unsigned char *));
 
-        for (int i = 0; i <= 100; i++)
+        for (int i = 0; i <= MAX_BUF_SIZE; i++)
         {
                 buf[i] = malloc(BUTTON_LENGTH* sizeof(unsigned char *));
         }
 
-        FILE *file = fopen(d->conf_name, "rb");
+        FILE *file = fopen(config_name, "rb");
         if (!file)
         {
                 fprintf(stderr,"Config Not found\nFalling back to default configuration\n");
@@ -232,7 +191,11 @@ int getconfig(Gamepad gp[],struct wlkb_in *d)
 
                 key += DEFAULT_PROP;
         }
-
+        for (int i = 0; i <= MAX_BUF_SIZE; i++)
+        {
+                free(buf[i]);
+        }
+	free(buf);
         return max_buttons;;
 }
 
