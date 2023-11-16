@@ -12,6 +12,7 @@
 #include <src/wlgp-input.h>
 #include <src/draw.h>
 
+int offset_val = 75;
 char *gamepad[MAX_BUTTONS] = { "[DPAD_UP]", "[DPAD_DOWN]", "[DPAD_RIGHT]", "[DPAD_LEFT]", "[BTN_NORTH]", "[BTN_SOUTH]", "[BTN_EAST]", "[BTN_WEST]", "[BTN_L]", "[BTN_R]", "[BTN_START]", "[BTN_SELECT]"};
 
 static int keyparse(char **data, char *button[], Gamepad gp[], int count, int ptr, int key_p)
@@ -126,7 +127,7 @@ int getconfig(Gamepad gp[],char *config_name)
         FILE *file = fopen(config_name, "rb");
         if (!file)
         {
-                fprintf(stderr,"Config Not found\nFalling back to default configuration\n");
+                //fprintf(stderr,"Config Not found\nFalling back to default configuration\n");
                 return 0;
         }
 
@@ -199,9 +200,10 @@ int getconfig(Gamepad gp[],char *config_name)
         return max_buttons;;
 }
 
-void adj_scale(Gamepad gp[],int scale,int begin,int end)
+void adj_scale(Gamepad gp[],int sel_theme,int scale,int begin,int end)
 {
-	if(!scale)
+
+  	if(!scale)
 	{
          	  scale = 1;
         }
@@ -212,8 +214,17 @@ void adj_scale(Gamepad gp[],int scale,int begin,int end)
 		gp[i].gm.right /= scale;
                 gp[i].gm.bottom /= scale;
                 gp[i].gm.left /= scale;
-		gp[i].gm.touch_length_x = (scale * gp[i].gm.size) ;
+		gp[i].gm.touch_length_x = (scale * gp[i].gm.size);
 		gp[i].gm.touch_length_y = (scale * gp[i].gm.size);
-		gp[i].gm.y += TOUCH_Y_OFFSET;
+
+		if(sel_theme && !gp[i].popup){
+                        gp[i].gm.touch_length_x = (scale * gp[i].gm.height);
+                        gp[i].gm.touch_length_y = (scale * gp[i].gm.width);
+                }
+
+		//gp[i].gm.y  += scale * DEFAULT_SIZE;
+		gp[i].gm.y  += offset_val;
+
+		printf("X offset %d Y offset %d touch_length_x %d touch_length_y %d\n",gp[i].gm.x,gp[i].gm.y,gp[i].gm.touch_length_x,gp[i].gm.touch_length_y);
 	}
 }

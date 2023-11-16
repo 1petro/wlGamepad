@@ -161,8 +161,10 @@ char *getdevicename(){
 void getdeviceresolution(struct  wlkb_in *data){
      if(ioctl (data->fds[0].fd, EVIOCGABS (ABS_MT_POSITION_X), &data->abs_x) == -1)
     perror("error: getting touchscreen size");
-     if(ioctl (data->fds[0].fd, EVIOCGABS (ABS_MT_POSITION_Y), &data->abs_y) == -1)
+     if(ioctl (data->fds[0].fd, EVIOCGABS (ABS_MT_POSITION_Y), &data->abs_y) == -1){
      perror("error: getting touchscreen size");
+     fprintf(stderr,"WARNING!!! The selected input device maybe not be a touch input device check dev/input for correct one\n");
+     }
 }
 
 void emit(int fd, uint16_t type, uint16_t code, int val) { struct input_event ie;

@@ -30,38 +30,40 @@
 		///////////////INIT BEGIN/////////////////
 		int timeout_ms = 4;	//default timeout
 		int max_btn = 8;
+		int sel_theme = 0;
 		uint32_t *gamepad_layout, *argb[MAX_BUTTONS];
 		int size, area, stride;
 		bool show_layout = 0, press;
 		struct wlkb_in d = { 0 };
 		struct td dt;
 		char *input_device=NULL,*config_name=NULL;
+		int layout_scale=1;
 
-		//BMPImg img;
 		Gamepad gp[MAX_BUTTONS] = {
-		{"[DPAD_UP]",KEY_UP,1,0,0,0,0,{380,430,50,50,50,0,0,380,430,DIRC_BOTTOMLEFT}},
-		{"[DPAD_DOWN]",KEY_DOWN,1,0,0,0,0,{380,143,50,50,50,0,0,380,143,DIRC_BOTTOMLEFT}},
-		{"[DPAD_LEFT]",KEY_LEFT,1,0,0,0,0,{250,270,50,50,50,0,0,250,270,DIRC_BOTTOMLEFT}},
-		{"[DPAD_RIGHT]",KEY_RIGHT,1,0,0,0,0,{508,270,50,50,50,0,0,508,270,DIRC_BOTTOMLEFT}},
-		{"[BTN_NORTH]",KEY_W,1,0,0,0,0,{1733,430,50,50,50,0,0,1733,430,DIRC_BOTTOMLEFT}},
-		{"[BTN_SOUTH]",KEY_ENTER,1,0,0,0,0,{1733,143,50,50,50,0,0,1733,143,DIRC_BOTTOMLEFT}},
-		{"[BTN_EAST]",KEY_Q,1,0,0,0,0,{1860,270,50,50,50,0,0,1860,270,DIRC_BOTTOMLEFT}},
-		{"[BTN_WEST]",KEY_SPACE,1,0,0,0,0,{1590,270,50,50,50,0,0,1590,270,DIRC_BOTTOMLEFT}},
-		{"[BTN_L]",KEY_L,1,0,0,0,0,{380,800,50,50,50,0,0,380,800,DIRC_BOTTOMLEFT}},
-		{"[BTN_R]",KEY_R,1,0,0,0,0,{1733,800,50,50,50,0,0,1733,800,DIRC_BOTTOMLEFT}},
-		{"[BTN_START]",KEY_ESC,1,0,0,0,0,{1173,0,50,50,50,0,0,1173,0,DIRC_BOTTOMLEFT}},
-		{"[BTN_SELECT]",KEY_G,1,0,0,0,0,{973,0,50,50,50,0,0,973,0,DIRC_BOTTOMLEFT}},
+		{"[DPAD_UP]",KEY_UP,1,0,0,0,0,{380,430,50,50,50,0,0,380,430,0,0,DIRC_BOTTOMLEFT}},
+		{"[DPAD_DOWN]",KEY_DOWN,1,0,0,0,0,{380,143,50,50,50,0,0,380,143,0,0,DIRC_BOTTOMLEFT}},
+		{"[DPAD_LEFT]",KEY_LEFT,1,0,0,0,0,{250,270,50,50,50,0,0,250,270,0,0,DIRC_BOTTOMLEFT}},
+		{"[DPAD_RIGHT]",KEY_RIGHT,1,0,0,0,0,{508,270,50,50,50,0,0,508,270,0,0,DIRC_BOTTOMLEFT}},
+		{"[BTN_NORTH]",KEY_W,1,0,0,0,0,{1733,430,50,50,50,0,0,1733,430,0,0,DIRC_BOTTOMLEFT}},
+		{"[BTN_SOUTH]",KEY_ENTER,1,0,0,0,0,{1733,143,50,50,50,0,0,1733,143,0,0,DIRC_BOTTOMLEFT}},
+		{"[BTN_EAST]",KEY_Q,1,0,0,0,0,{1860,270,50,50,50,0,0,1860,270,0,0,DIRC_BOTTOMLEFT}},
+		{"[BTN_WEST]",KEY_SPACE,1,0,0,0,0,{1590,270,50,50,50,0,0,1590,270,0,0,DIRC_BOTTOMLEFT}},
+		{"[BTN_L]",KEY_L,1,0,0,0,0,{380,800,50,50,50,0,0,380,800,0,0,DIRC_BOTTOMLEFT}},
+		{"[BTN_R]",KEY_R,1,0,0,0,0,{1733,800,50,50,50,0,0,1733,800,0,0,DIRC_BOTTOMLEFT}},
+		{"[BTN_START]",KEY_ESC,1,0,0,0,0,{1173,0,50,50,50,0,0,1173,0,0,0,DIRC_BOTTOMLEFT}},
+		{"[BTN_SELECT]",KEY_G,1,0,0,0,0,{973,0,50,50,50,0,0,973,0,0,0,DIRC_BOTTOMLEFT}},
 		[SHOW_POPUP].button = "[POPUP]",[SHOW_POPUP].keycode = 0,
 		[SHOW_POPUP].popup = true,[SHOW_POPUP].gm.size = 50,
 		[SHOW_POPUP].gm.touch_length_x = 50,[SHOW_POPUP].gm.touch_length_y=50,
 		[SHOW_POPUP].gm.x = 1073,[SHOW_POPUP].gm.y = 0,
 		[SHOW_POPUP].gm.top=0,[SHOW_POPUP].gm.bottom=0,[SHOW_POPUP].gm.left=1073,[SHOW_POPUP].gm.right=0,
 		[SHOW_POPUP].gm.direction = DIRC_TOPLEFT,[SHOW_POPUP].toggle =1,
+		[SHOW_POPUP].gm.width = 50,[SHOW_POPUP].gm.height = 50,
 		};
 
 
 		 int f;
-		  while((f = getopt(argc, argv, "d:c:l:t:vh")) != -1) {
+		  while((f = getopt(argc, argv, "d:c:s:T:o:t:vh")) != -1) {
 		    switch (f) {
 		      case 'd':
 		        input_device = optarg;
@@ -69,9 +71,13 @@
 		      case 'c':
 		        config_name = optarg;
 		        break;
-		      case 'l':
-		        strncpy(d.img_name,optarg,25);
-		        strcpy(d.img_name,"\0");
+		      case 's':
+                        layout_scale = atoi(optarg);
+                        break;
+		      case 'T':
+		        sel_theme = atoi(optarg);
+		      case 'o':
+                        offset_val = atoi(optarg);
 		        break;
 		      case 't':
 		        d.timeout = atoi(optarg);
@@ -84,7 +90,7 @@
 		        printf("option needs a value\n");
 		        break;
 		      case 'h':
-		        printf("\nusage: [options]\npossible options are:\n -h: print this help\n -d: set path to inputdevice\n -c: load gamepad config file\n -l: load layout image for wlgamepad\n -t: set timeout for show/hide gamepad\n -v: show wlgp version\n\n" );
+		        printf("\nusage: [options]\npossible options are:\n -h: print this help\n -d: set path to inputdevice\n -c: load gamepad config file\n -s: layout scale (only for theme)\n -T: load theme  for wlgamepad   (0:default/1:PlayPad)\n -o: setup offset value for y-axis\n -t: set timeout for show/hide gamepad\n -v: show wlgp version\n\n" );
 		        exit(0);
 		        break;
 		      case '?':
@@ -99,7 +105,6 @@
 
 			if(!input_device){
 			input_device = getdevicename();
-			fprintf(stderr,"device %s\n",input_device);
 			}else
 				if(!input_device){
 				fprintf(stderr,"No input device found method 2 exiting....");
@@ -116,18 +121,22 @@
 		if(!max_btn)
 		{
 			max_btn = MAX_DEFAULT_BUTTONS;
+			config_name = "wLGamepad Default config";
 		}
+
 		init(input_device, &d);
 		getdeviceresolution(&d);
-		//BMPImgread(&img,d.img_name);
-		//setlayout(&img,layout_1,250 *250);
-		//imgparse(&img);
+
+ 		fprintf(stderr,"------------------------------------------\n");
+                fprintf(stderr,"Input_device           | %s\n",input_device);
+                fprintf(stderr,"User config            | %s\n",config_name);
+                fprintf(stderr,"theme                  | %d\n",sel_theme);
+		fprintf(stderr,"scale                  | %dx\n",layout_scale);
+                fprintf(stderr,"------------------------------------------\n");
 
 		struct wlgp gp_layout = { 0 };
 
 		size = max_size(gp, 0, max_btn);
-		stride = 4 * size;
-		area = stride * size;
 		gp_layout.wl_display = wl_display_connect(NULL);
 		assert(gp_layout.wl_display);
 		if (gp_layout.wl_display == NULL)
@@ -138,7 +147,10 @@
 
 		getscale(&gp_layout);
 
-		//printf("size choosed %d \n", size);
+		size = UINT8_MAX;
+
+                stride = 4 * size;
+                area = stride * size;
 
 		if (d.timeout)
 		{
@@ -146,14 +158,15 @@
 		}
 
 		gamepad_layout = wlgp_create_argb_buffer(&gp_layout, area);
+		printf(" size required %d\n",size);
 
 		for (int i = 0; i <= MAX_BUTTONS; i++)
 		{
 			argb[i] = malloc(size *size* sizeof(uint32_t));
 		}
 
-		wlgp_draw_scaleable_layout(gp, cur_scale, argb, max_btn, MAX_BUTTONS);
-		wlgp_create_surface(&gp_layout, gp, SHOW_POPUP, MAX_BUTTONS, gamepad_layout, argb);
+		wlgp_draw_scaleable_layout(gp, cur_scale, argb, sel_theme, layout_scale, max_btn, MAX_BUTTONS);
+		wlgp_create_surface(&gp_layout, gp, SHOW_POPUP, MAX_BUTTONS, sel_theme, gamepad_layout, argb);
 
 		///////////////INIT END///////////////////
 		while (true)
@@ -168,7 +181,7 @@
 				dt = dt_touch_area(&d, d.abs_x.maximum - gp[SHOW_POPUP].gm.size - gp[SHOW_POPUP].gm.y, gp[SHOW_POPUP].gm.x, gp[SHOW_POPUP].gm.touch_length_x, gp[SHOW_POPUP].gm.touch_length_y);
 				if (d.mt.pressed && dt.prs && !show_layout)
 				{
-					wlgp_create_surface(&gp_layout, gp, 0, max_btn, gamepad_layout, argb);
+					wlgp_create_surface(&gp_layout, gp, 0, max_btn, sel_theme, gamepad_layout, argb);
 					show_layout = 1;
 				}
 				else if (d.mt.pressed && dt.prs && show_layout)

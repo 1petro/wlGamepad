@@ -25,6 +25,8 @@ struct geometry {
  int right;
  int left;
  int bottom;
+ int height;
+ int width;
  int direction;
 };
 
@@ -52,12 +54,12 @@ struct wlgp {
 };
 
 //GUI functions
-void wlgp_render(struct wlgp *app,Gamepad gp[],int surf_ptr,int len);
+void wlgp_render(struct wlgp *app,Gamepad gp[],int surf_ptr,int len_x,int len_y);
 void wlgp_destroy_surface(struct wlgp *app,int surf_ptr);
 void wlgp_clear_surface(struct wlgp *app,Gamepad gp[],int begin,int max_surface);
 void wlgp_destroy(struct wlgp *app);
 int getscale(struct wlgp *app);
-void wlgp_create_surface(struct wlgp *app,Gamepad gp[],int max_num,int begin,uint32_t *argb,uint32_t *adj[]);
+void wlgp_create_surface(struct wlgp *app,Gamepad gp[],int max_num,int begin,int theme,uint32_t *argb,uint32_t *adj[]);
 //void render(struct wlgp *app,int anchor,geometry *gm);
 uint32_t *wlgp_create_argb_buffer(struct wlgp *app,int size);
 void layer_surface_configure(void *data, struct zwlr_layer_surface_v1 *surface, uint32_t serial, uint32_t w, uint32_t h);

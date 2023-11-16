@@ -1,7 +1,6 @@
 #ifndef MY_HEADER_FILE_H
 #define MY_HEADER_FILE_H
 #define START 1
-#define TOUCH_Y_OFFSET 75
 #define STOP 0
 
 #include <stdio.h>

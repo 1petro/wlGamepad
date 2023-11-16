@@ -149,11 +149,11 @@ const static struct wl_registry_listener wl_registry_listener = {
 }
 
 void
-wlgp_create_surface(struct wlgp *app,Gamepad gp[],int begin,int max_surface,uint32_t *argb,uint32_t *adj[])
+wlgp_create_surface(struct wlgp *app,Gamepad gp[],int begin,int max_surface,int theme,uint32_t *argb,uint32_t *adj[])
 {
         int stride;
         int size;
-        int len;
+	int len_x,len_y;
 
         const static struct wl_registry_listener wl_registry_listener = {
  		.global = handle_global,
@@ -172,11 +172,19 @@ wlgp_create_surface(struct wlgp *app,Gamepad gp[],int begin,int max_surface,uint
 	       	continue;
         }
 
-        len = gp[i].gm.size;
-        stride = len * 4;
-        size = stride * len;
+	if(theme){
+		gp[SHOW_POPUP].gm.width=gp[SHOW_POPUP].gm.size;
+		gp[SHOW_POPUP].gm.height=gp[SHOW_POPUP].gm.size;
+		len_x = gp[i].gm.width;
+		len_y = gp[i].gm.height;
+	}else{
+	        len_x = len_y = gp[i].gm.size;
+	}
 
-        memcpy(argb,adj[i],len * len * sizeof(uint32_t));
+        stride = len_x * 4;
+        size = stride * len_y;
+
+        memcpy(argb,adj[i],len_x * len_y * sizeof(uint32_t));
 
  	app->wl_registry = wl_display_get_registry(app->wl_display);
 	if (app->wl_registry == NULL) {
@@ -197,7 +205,7 @@ wlgp_create_surface(struct wlgp *app,Gamepad gp[],int begin,int max_surface,uint
 		exit(EXIT_FAILURE);
 	}
 
- 	app->wl_buffer = wl_shm_pool_create_buffer(pool, 0, len,len,stride, WL_SHM_FORMAT_ARGB8888);
+ 	app->wl_buffer = wl_shm_pool_create_buffer(pool, 0, len_x,len_y,stride, WL_SHM_FORMAT_ARGB8888);
 	wl_shm_pool_destroy(pool);
 	if (app->wl_buffer == NULL) {
 		fprintf(stderr, "wl_shm_pool_create_buffer failed\n");
@@ -215,7 +223,7 @@ wlgp_create_surface(struct wlgp *app,Gamepad gp[],int begin,int max_surface,uint
 		exit(EXIT_FAILURE);
 	}
 
-	zwlr_layer_surface_v1_set_size(app->zwlr_layer_surface, len, len);
+	zwlr_layer_surface_v1_set_size(app->zwlr_layer_surface, len_x, len_y);
 	zwlr_layer_surface_v1_set_anchor(app->zwlr_layer_surface, gp[i].gm.direction);
         zwlr_layer_surface_v1_set_margin(app->zwlr_layer_surface,gp[i].gm.top, gp[i].gm.right, gp[i].gm.bottom, gp[i].gm.left);
 	zwlr_layer_surface_v1_add_listener(app->zwlr_layer_surface, &zwlr_layer_surface_listener, app->zwlr_layer_surface);
@@ -226,16 +234,13 @@ wlgp_create_surface(struct wlgp *app,Gamepad gp[],int begin,int max_surface,uint
 		exit(EXIT_FAILURE);
 	}
 
-        if(!app->wl_buffer){fprintf(stderr,"a7a\n");}
-
-        wlgp_render(app,gp,i,len);
-        //sleep(1);
+        wlgp_render(app,gp,i,len_x,len_y);
     }
 }
-void wlgp_render(struct wlgp *app,Gamepad gp[],int surf_ptr,int len)
+void wlgp_render(struct wlgp *app,Gamepad gp[],int surf_ptr,int len_x,int len_y)
 {
         wl_surface_attach(app->wl_surface[surf_ptr], app->wl_buffer, 0, 0);
-        wl_surface_damage(app->wl_surface[surf_ptr], 0, 0, len, len);
+        wl_surface_damage(app->wl_surface[surf_ptr], 0, 0, len_x, len_y);
         wl_surface_commit(app->wl_surface[surf_ptr]);
         if (wl_display_dispatch(app->wl_display) == -1) {
                 fprintf(stderr, "wl_display_dispatch failed\n");

@@ -10,29 +10,16 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
-
-
-typedef struct {             // Total: 54 bytes
-  uint16_t  type;             // Magic identifier: 0x4d42
-  uint32_t  size;             // File size in bytes
-  uint16_t  reserved1;        // Not used
-  uint16_t  reserved2;        // Not used
-  uint32_t  offset;           // Offset to image data in byte>
-  uint32_t  dib_header_size;  // DIB Header size in bytes (40>
-  int32_t   width_px;         // Width of the image
-  int32_t   height_px;        // Height of image
-} BMPHeader;
+#include <png.h>
 
 typedef struct {
- BMPHeader *imgheader;
- unsigned char* imgdata;
- uint32_t *pixel;
-} BMPImg;
+int width, height;
+png_byte color_type;
+png_byte bit_depth;
+png_bytep *row_pointers;
+}gpimg;
 
-int padding(int read);
-int BMPImgread(BMPImg *img,char *imgname);
-void draw_gplayout(uint32_t * argb,BMPImg *img,int transparency);
-void draw_gplayoutwoffset(uint32_t * argb,BMPImg *img,int offset_x,int offset_y,int width,int transparency );
-void print_pixels(BMPImg *img,int transparency );
-void imgparse(BMPImg *img);
+void read_gp_img(gpimg *img,char *filename);
+void draw_gplayoutwoffset(uint32_t * argb_w,gpimg *img,int offset_x,int offset_y,int width,int scale);
+void draw_gplayout(uint32_t * argb_w,gpimg *img,int *width,int *height,int scale);
 #endif
