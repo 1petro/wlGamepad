@@ -44,10 +44,12 @@ wlr_layer_shell_unstable_v1 = declare_dependency(link_with: wlr_layer_shell_unst
 
 inc = include_directories('src/libevdev')
 
+libpng = dependency('libpng16')
+
 executable(
 	'wlgp',
 	['src/main.c','src/wlgp-gui.c','src/draw.c','src/wlgp-input.c','src/libevdev/libevdev.c','src/image.c','src/config.c','src/libevdev/libevdev-names.c','src/layout.c'], 
-        link_args : '-lm',
+        link_args : ['-lm','-lpng'],
 	include_directories : inc,
 	dependencies: [wayland_client, wlr_layer_shell_unstable_v1, xdg_shell, rt], 
 	install: true
