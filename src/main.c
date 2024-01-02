@@ -31,13 +31,14 @@
 		int timeout_ms = 4;	//default timeout
 		int max_btn = 8;
 		int sel_theme = 0;
-		uint32_t *gamepad_layout, *argb[MAX_BUTTONS];
+		uint32_t *gamepad_layout,*argb[MAX_BUTTONS];
 		int size, area, stride;
 		bool show_layout = 0, press;
 		struct wlkb_in d = { 0 };
 		struct td dt;
 		char *input_device=NULL,*config_name=NULL;
 		int layout_scale=1;
+		struct wlgp gp_layout = { 0 };
 
 		Gamepad gp[MAX_BUTTONS] = {
 		{"[DPAD_UP]",KEY_UP,1,0,0,0,0,{380,430,50,50,50,0,0,380,430,0,0,DIRC_BOTTOMLEFT}},
@@ -76,6 +77,7 @@
                         break;
 		      case 'T':
 		        sel_theme = atoi(optarg);
+			break;
 		      case 'o':
                         offset_val = atoi(optarg);
 		        break;
@@ -99,6 +101,14 @@
 		    }
 		  }
 
+		fprintf(stderr, "Get options argument success....1\n");
+
+		if(sel_theme > 1)
+		{
+			fprintf(stderr,"Error choose a correct value for theme selection\n");
+			exit(1);
+		}
+
 		if(!input_device)
 		{
 			input_device = getenv("INPUT_DEVICE");
@@ -112,6 +122,8 @@
 			}
 		}
 
+		fprintf(stderr, "input device found %s....2\n",input_device);
+
 		if(!config_name)
 		{
 			config_name = getenv("CONFIG_PATH");
@@ -124,8 +136,17 @@
 			config_name = "wLGamepad Default config";
 		}
 
+		for(int i = 0;i<max_btn;i++)
+		{
+		fprintf(stderr,"button %s x %d y %d toggle %d keycode %d length_x %d length_y %d direction %d right %d left %d bottom %d size %d\n",gp[i].button,gp[i].gm.x,gp[i].gm.y,gp[i].toggle,gp[i].keycode,gp[i].gm.touch_length_x,gp[i].gm.touch_length_y,gp[i].gm.direction,gp[i].gm.right,gp[i].gm.left,gp[i].gm.bottom,gp[i].gm.size);
+		}
+
+		fprintf(stderr, "Config is parsed succesfully...\n");
+
 		init(input_device, &d);
 		getdeviceresolution(&d);
+
+		fprintf(stderr, "Init device success....3\n");
 
  		fprintf(stderr,"------------------------------------------\n");
                 fprintf(stderr,"Input_device           | %s\n",input_device);
@@ -134,9 +155,6 @@
 		fprintf(stderr,"scale                  | %dx\n",layout_scale);
                 fprintf(stderr,"------------------------------------------\n");
 
-		struct wlgp gp_layout = { 0 };
-
-		size = max_size(gp, 0, max_btn);
 		gp_layout.wl_display = wl_display_connect(NULL);
 		assert(gp_layout.wl_display);
 		if (gp_layout.wl_display == NULL)
@@ -145,10 +163,13 @@
 			return EXIT_FAILURE;
 		}
 
+		fprintf(stderr, "wayland display connected success wayland-0 ....5\n");
+
 		getscale(&gp_layout);
 
-		size = UINT8_MAX;
+		fprintf(stderr, "success to get UI scale %d ....6\n",cur_scale);
 
+		size = UINT8_MAX;
                 stride = 4 * size;
                 area = stride * size;
 
@@ -158,15 +179,21 @@
 		}
 
 		gamepad_layout = wlgp_create_argb_buffer(&gp_layout, area);
-		//printf(" size required %d\n",size);
+
+		fprintf(stderr, "success to create argb buffer....7\n");
+		printf(" size required %d\ntimeout %d\noffset %d\n",size,timeout_ms,offset_val);
 
 		for (int i = 0; i <= MAX_BUTTONS; i++)
 		{
 			argb[i] = malloc(size *size* sizeof(uint32_t));
 		}
 
+		fprintf(stderr, "success to allocate data for argb....8\n");
 		wlgp_draw_scaleable_layout(gp, cur_scale, argb, sel_theme, layout_scale, max_btn, MAX_BUTTONS);
+		fprintf(stderr, "Draw scaled layout success....9\n");
+
 		wlgp_create_surface(&gp_layout, gp, SHOW_POPUP, MAX_BUTTONS, sel_theme, gamepad_layout, argb);
+		fprintf(stderr, "Create Surface initially success....10\n");
 
 		///////////////INIT END///////////////////
 		while (true)
