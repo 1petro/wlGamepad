@@ -34,22 +34,26 @@ void wlgp_set_keymap(Gamepad gp[], struct wlkb_in *data, int flag, int begin, in
 			if (touchdt.prs && flag && gp[i].toggle)
 			{
 				send_event(data->fd, EV_KEY, gp[i].keycode, 1);
+				fprintf(stderr, "Button %s UP ....\n",gp[i].button);
 				chk[i] = 1;
 			}
 			else if (!flag)
 			{
 				send_event(data->fd, EV_KEY, gp[i].keycode, 0);
+				//fprintf(stderr, "Button %s DOWM ....\n",gp[i].button);
 			}
 			else if (!touchdt.prs)
 			{
 				if ((rc = lookup_match_keycode(gp, i)))
 				{
 					send_event(data->fd, EV_KEY, gp[i].keycode, 0);
+					fprintf(stderr, "Button %s DOWM ....\n",gp[i].button);
 					memset(chk, 0, sizeof(chk));
 				}
 				else if (flag && rc)
 				{
 					send_event(data->fd, EV_KEY, gp[i].keycode, 0);
+					fprintf(stderr, "Button %s DOWM ....\n",gp[i].button);
 				}
 			}
 		}
@@ -59,27 +63,6 @@ void wlgp_set_keymap(Gamepad gp[], struct wlkb_in *data, int flag, int begin, in
 				dt_touch_pad(data, flag, gp[i].gm.y, gp[i].gm.x, gp[i].gm.touch_length_x, gp[i].gm.touch_length_y);
 		}
 	}
-}
-
-int max_size(Gamepad gp[], int begin, int end)
-{
-	int size = 0;
-	size = gp[begin].gm.size;
-
-	for (int i = begin; i < end; i++)
-	{
-		if (size < gp[i].gm.size)
-		{
-			size = gp[i].gm.size;
-		}
-	}
-
-	if (gp[SHOW_POPUP].gm.size > size)
-	{
-		size = gp[SHOW_POPUP].gm.size;
-	}
-
-	return size;
 }
 
 void wlgp_draw_scaleable_layout(Gamepad gp[], int scale, uint32_t *argb[], int sel_theme,int layout_scale, int max_btn, int end)
