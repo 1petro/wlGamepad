@@ -88,47 +88,35 @@ void init(char *device,struct wlkb_in *data){
 	}
 
     if (data->fds[0].fd < 0) {
-        printf("error unable open for reading '%s'\n", device);
-        //return (0);
+	if (errno == ENOENT) {
+            fprintf(stderr,"error unable to open for reading '%s' no such file or directory\n", device);
+        } else if (errno == EACCES) {
+            fprintf(stderr,"error cant access %s permission denied\n", device);
+        } else if (errno == ENOMEM) {
+            fprintf(stderr,"error out of memory %s\n", device);
+        } else {
+            fprintf(stderr,"Unable to open file %s for reading ",device);
+        }
+    exit(1);
     }
 }
 
 char *getdevicename(){
-    int fdinput,key;
     glob_t  files;
     int     result;
-    char buf[30] = "/dev/input/",*dev_name;
-    DIR *inputdevs = opendir("/dev/input");
-    struct dirent *dptr;
-    fdinput = -1;
-    while((dptr = readdir(inputdevs))) {
-      if((fdinput=openat(dirfd(inputdevs), dptr->d_name, O_RDONLY)) != -1 && ioctl(fdinput, EVIOCGBIT(0, sizeof(key)), &key) != -1 && key>>EV_ABS & 1)
-        break;
-      if(fdinput != -1){
-        close(fdinput);
-        fdinput = -1;
-      }
-    }
-    if(fdinput == -1) {
-      fprintf(stderr, "no touch device found in /dev/input trying method 2\n");
-    }else{
-    dev_name = dptr->d_name;
-    strcat(buf,dev_name);
-    strcpy(dev_name,buf);
-    return dev_name;
-    }
-
-
     result = glob("/dev/input/event*", 0, NULL, &files);
     if (result) {
         if (result == GLOB_NOSPACE) {
+	    fprintf(stderr,"error out of memory\n");
             errno = ENOMEM;
             return NULL;
         } else
     if (result == GLOB_NOMATCH) {
+	    fprintf(stderr,"error no such file or directory\n");
             errno = ENOENT;
             return NULL;
         } else {
+	    fprintf(stderr,"Unable to access permission denied\n");
             errno = EACCES;
             return NULL;
         }
@@ -153,6 +141,7 @@ char *getdevicename(){
     }
    globfree(&files);
 
+    fprintf(stderr,"error no such file or directory\n");
     errno = ENOENT;
     return NULL;
  }
