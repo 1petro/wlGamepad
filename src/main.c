@@ -25,6 +25,12 @@
 #include "wlr-layer-shell-unstable-v1.h"
 #include "xdg-shell-client-protocol.h"
 int cur_scale=2;
+int isDir(const char* fileName)
+{
+    struct stat path;
+    stat(fileName, &path);
+    return S_ISREG(path.st_mode);
+}
 
 	int main(int argc, char *argv[])
 	{
@@ -97,6 +103,7 @@ int cur_scale=2;
 		        break;
 		      case ':':
 		        printf("option needs a value\n");
+			exit(1);
 		        break;
 		      case 'h':
 		        printf("\nusage: [options]\npossible options are:\n -h: print this help\n -a: detect gui scale automatically and dont use default\n -g: set gui scale\n -d: set path to inputdevice\n -c: load gamepad config file\n -s: layout scale (only for theme)\n -T: load theme  for wlgamepad   (0:default/1:PlayPad)\n -o: setup offset value for y-axis\n -t: set timeout for show/hide gamepad\n -v: show wlgp version\n\n" );
@@ -104,9 +111,20 @@ int cur_scale=2;
 		        break;
 		      case '?':
 		        fprintf(stderr, "unrecognized option -%c\n", optopt);
+			exit(1);
 		        break;
 		    }
 		  }
+
+		if(config_name != NULL && !isDir(config_name)){
+	        	printf("Error given config file is a directory using default config\n");
+			config_name = NULL;
+	        }
+
+		if(input_device != NULL && !strstr(input_device, "/dev/input/") && !isDir(input_device)){
+                	printf("Error given input file is a directory\n");
+                	exit(1);
+                }
 
 		#ifdef DEBUG
 		fprintf(stderr, "Get options argument success....1\n");
