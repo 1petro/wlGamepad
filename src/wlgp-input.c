@@ -66,6 +66,18 @@ void init(char *device,struct wlkb_in *data){
         ioctl(data->fd, UI_SET_KEYBIT, BTN_B);
         ioctl(data->fd, UI_SET_KEYBIT, BTN_X);
         ioctl(data->fd, UI_SET_KEYBIT, BTN_Y);
+	ioctl(data->fd, UI_SET_KEYBIT, BTN_START);
+	ioctl(data->fd, UI_SET_KEYBIT, BTN_SELECT);
+	ioctl(data->fd, UI_SET_KEYBIT, BTN_TL);
+	ioctl(data->fd, UI_SET_KEYBIT, BTN_TR);
+	ioctl(data->fd, UI_SET_KEYBIT, BTN_DPAD_UP);
+	ioctl(data->fd, UI_SET_KEYBIT, BTN_DPAD_DOWN);
+	ioctl(data->fd, UI_SET_KEYBIT, BTN_DPAD_LEFT);
+	ioctl(data->fd, UI_SET_KEYBIT, BTN_DPAD_RIGHT);
+	ioctl(data->fd, UI_SET_KEYBIT, BTN_NORTH);
+	ioctl(data->fd, UI_SET_KEYBIT, BTN_SOUTH);
+	ioctl(data->fd, UI_SET_KEYBIT, BTN_EAST);
+	ioctl(data->fd, UI_SET_KEYBIT, BTN_WEST);
         ioctl(data->fd, UI_SET_EVBIT, EV_ABS);
         ioctl(data->fd, UI_SET_ABSBIT, ABS_X);
         ioctl(data->fd, UI_SET_ABSBIT, ABS_Y);
