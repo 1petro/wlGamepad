@@ -12,7 +12,7 @@
 #include <src/wlgp-input.h>
 #include <src/draw.h>
 
-int offset_val = 75;
+int offset_val = 0;
 char *gamepad[MAX_BUTTONS] = { "[DPAD_UP]", "[DPAD_DOWN]", "[DPAD_RIGHT]", "[DPAD_LEFT]", "[BTN_NORTH]", "[BTN_SOUTH]", "[BTN_EAST]", "[BTN_WEST]", "[BTN_L]", "[BTN_R]", "[BTN_START]", "[BTN_SELECT]"};
 
 static int keyparse(char **data, char *button[], Gamepad gp[], int count, int ptr, int key_p)
