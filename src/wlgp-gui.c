@@ -14,6 +14,7 @@
 #include <unistd.h> // shm, ftruncate
 #include <poll.h>
 #include <src/wlgp-gui.h>
+#include <src/debug.h>
 #include "wlr-layer-shell-unstable-v1.h"
 #include "xdg-shell-client-protocol.h"
 #include "src/draw.h"
@@ -22,7 +23,7 @@ void
 layer_surface_configure(void *data, struct zwlr_layer_surface_v1 *surface, uint32_t serial, uint32_t w, uint32_t h)
 {
 	#ifdef DEBUG
-	fprintf(stderr, "Configuring layer surface....\n");
+	WLGP_PRINT(1,"Configuring layer surface....\n");
 	#endif
         zwlr_layer_surface_v1_ack_configure(surface, serial);
 }
@@ -31,7 +32,7 @@ void
 layer_surface_closed(void *data, struct zwlr_layer_surface_v1 *surface)
 {
 #ifdef DEBUG
-fprintf(stderr, "Closing layer surface....\n");
+WLGP_PRINT(1, "Closing layer surface....\n");
 #endif
 }
 
@@ -48,7 +49,7 @@ static void output_handle_mode(void *data, struct wl_output *wl_output,
 		   int32_t refresh) {}
 static void output_handle_done(void *data, struct wl_output *wl_output) {
 #ifdef DEBUG
-fprintf(stderr, "Output handling is done....\n");
+WLGP_PRINT(1, "Output handling is done....\n");
 #endif
 }
 static void output_handle_a(void *data,struct wl_output *wl_output,const char *s){}
@@ -57,7 +58,7 @@ static void output_handle_scale(void *data, struct wl_output *wl_output,
 		    int32_t scale)
 {
     #ifdef DEBUG
-    fprintf(stderr, "Scale is set....\n");
+    WLGP_PRINT(1, "Scale is set successfuly....\n");
     #endif
     cur_scale = scale;
 }
@@ -247,7 +248,7 @@ wlgp_create_surface(struct wlgp *app,Gamepad gp[],int begin,int max_surface,int 
 	}
 
 	#ifdef DEBUG
-	fprintf(stderr, "Surface created name %s length_x %d length_y %d\n",gp[i].button,len_x,len_y);
+	WLGP_PRINT(4, "Surface created name %s length_x %d length_y %d\n",gp[i].button,len_x,len_y);
 	#endif
 
         wlgp_render(app,gp,i,len_x,len_y);
