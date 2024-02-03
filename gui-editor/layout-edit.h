@@ -14,6 +14,7 @@
 #include <src/draw.h>
 
 #define LOCK_UNLOCK MAX_BUTTONS-2
+#define LOCK_UNLOCK_BTN_SIZE 75
 
 #define _POSIX_C_SOURCE 200809L
 #ifndef DEBUG

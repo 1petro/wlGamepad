@@ -46,13 +46,13 @@ if(!fp){
 void draw_create_lock_unlock_btn(uint32_t *argb,Gamepad gp[],struct wlkb_in *data,int theme,int scale,int lock_state){
 
 	if(!lock_state){
-		draw_area(argb, 50, 50, BLACK);
+		draw_area(argb, LOCK_UNLOCK_BTN_SIZE, LOCK_UNLOCK_BTN_SIZE, BLACK);
 	}else{
-		draw_area(argb, 50, 50, WHITE);
+		draw_area(argb, LOCK_UNLOCK_BTN_SIZE, LOCK_UNLOCK_BTN_SIZE, WHITE);
 	}
 
 
-	gp[LOCK_UNLOCK].gm.size = gp[LOCK_UNLOCK].gm.height = gp[LOCK_UNLOCK].gm.width = gp[LOCK_UNLOCK].gm.touch_length_x = gp[LOCK_UNLOCK].gm.touch_length_y = 50;
+	gp[LOCK_UNLOCK].gm.size = gp[LOCK_UNLOCK].gm.height = gp[LOCK_UNLOCK].gm.width = gp[LOCK_UNLOCK].gm.touch_length_x = gp[LOCK_UNLOCK].gm.touch_length_y = LOCK_UNLOCK_BTN_SIZE;
 	gp[LOCK_UNLOCK].gm.y = data->abs_x.maximum/2 - gp[LOCK_UNLOCK].gm.size;
 	gp[LOCK_UNLOCK].gm.x = data->abs_y.maximum/2 - gp[LOCK_UNLOCK].gm.size;
 	gp[LOCK_UNLOCK].gm.direction = DIRC_BOTTOMLEFT;
@@ -70,7 +70,7 @@ static int dt_one_press(struct wlkb_in *data,struct td *touchdt,bool *td_done,in
 				if (data->mt.pressed && touchdt->prs && !(*td_done))
                                 {
                                         *td_done = 1;
-					if(index && !lock_state){selected=index;}
+					if(!lock_state){selected=index;}
                                 }
                                 else if (data->mt.pressed && touchdt->prs && *td_done)
                                 {

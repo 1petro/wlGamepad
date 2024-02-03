@@ -134,6 +134,7 @@ int isDir(const char* fileName)
 		pwd = getenv("PWD");
 		auto_dtscale = 1;
 		layout.lock_state = 1;
+		layout.selected = -1;
 
 		#ifdef DEBUG
 		WLGP_PRINT(1, "[1] Get options argument success\n");
@@ -273,7 +274,7 @@ int isDir(const char* fileName)
 			                wlgp_create_surface(&gp_layout, gp, LOCK_UNLOCK, SHOW_POPUP, sel_theme, gamepad_layout, argb);
 				}
 
-				if(!layout.lock_state && layout.selected)
+				if(!layout.lock_state)
 				{
 					if(press)
 					{
@@ -286,6 +287,7 @@ int isDir(const char* fileName)
 						#endif
 						wlgp_clear_surface(&gp_layout, gp, layout.selected,layout.selected+1);
 						wlgp_create_surface(&gp_layout, gp, layout.selected,layout.selected+1, sel_theme, gamepad_layout, argb);
+						gp[layout.selected].gm.y += offset_val;
 					}
 				}
 				//                    print_event(&d);	//debugging only print events reported by touch status
